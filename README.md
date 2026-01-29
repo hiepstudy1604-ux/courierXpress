@@ -1,64 +1,67 @@
-# 📦 Hướng Dẫn Setup Project Courier Xpress
+# 📦 Courier Xpress Setup Guide
 
-Hướng dẫn chi tiết để giải nén và chạy project Courier Xpress trên máy mới.
+A detailed guide to unpack and run the Courier Xpress project on your machine.
 
-
-## 🖥️ Yêu Cầu Hệ Thống
+## 🖥️ System Requirements
 
 ### Backend (Laravel)
+
 - **PHP** >= 8.2
 - **Composer** (PHP package manager)
-- **MySQL** >= 5.7 hoặc **MariaDB** >= 10.3
-- **Node.js** >= 18.x và **NPM** (cho frontend assets)
+- **MySQL** >= 5.7 or **MariaDB** >= 10.3
+- **Node.js** >= 18.x and **NPM** (for frontend assets)
 
 ### Frontend (React/TypeScript)
-- **Node.js** >= 18.x
-- **NPM** >= 9.x hoặc **Yarn** >= 1.22
 
-### Công Cụ Khác
-- **phpMyAdmin** (quản lý database)
+- **Node.js** >= 18.x
+- **NPM** >= 9.x or **Yarn** >= 1.22
+
+### Other Tools
+
+- **phpMyAdmin** (database management)
 
 ---
 
-## 📂 Giải Nén Project
+## 📂 Unpack the Project
 
-### Bước 1: Giải nén file ZIP
+### Step 1: Extract the ZIP file
 
-1. Giải nén file `courier-xpress.zip` vào thư mục bạn muốn (ví dụ: `C:\Projects\` hoặc `~/Projects/`)
-2. Sau khi giải nén, bạn sẽ có cấu trúc thư mục như sau:
+1. Extract the `courier-xpress.zip` file to your desired directory (e.g., `C:\Projects\` or `~/Projects/`)
+2. After extraction, you will have the following directory structure:
 
 ```
 courier-xpress/
 ├── backend/          # Laravel Backend
 ├── frontend/         # React Frontend
-├── SETUP_GUIDE.md    # File này
+├── SETUP_GUIDE.md    # Setup guide
 └── ...
 ```
 
-### Bước 2: Kiểm tra cấu trúc
+### Step 2: Verify the structure
 
-Đảm bảo bạn có đầy đủ các thư mục:
-- `backend/` - chứa code Laravel
-- `frontend/` - chứa code React
+Make sure you have the following directories:
+
+- `backend/` - contains Laravel code
+- `frontend/` - contains React code
 
 ---
 
 ## 🔧 Setup Backend (Laravel)
 
-### Bước 1: Cài đặt Dependencies
+### Step 1: Install Dependencies
 
-Mở terminal/command prompt và di chuyển vào thư mục `backend`:
+Open terminal/command prompt and navigate to the `backend` directory:
 
 ```bash
 cd backend
 composer install
 ```
 
-**Lưu ý:** Nếu chưa có Composer, tải tại: https://getcomposer.org/
+**Note:** If you don't have Composer, download it at: https://getcomposer.org/
 
-### Bước 2: Cấu hình Environment
+### Step 2: Configure Environment
 
-1. **Copy file `.env.example` thành `.env`:**
+1. **Copy `.env.example` to `.env`:**
 
 ```bash
 # Windows (PowerShell)
@@ -71,31 +74,31 @@ copy .env.example .env
 cp .env.example .env
 ```
 
-2. **Tạo Application Key:**
+2. **Generate Application Key:**
 
 ```bash
 php artisan key:generate
 ```
 
-3. **Tạo JWT Secret:**
+3. **Generate JWT Secret:**
 
 ```bash
 php artisan jwt:secret
 ```
 
-### Bước 3: Cấu hình Database
+### Step 3: Configure Database
 
-1. **Tạo database trong MySQL:**
+1. **Create database in MySQL:**
 
-Mở MySQL (phpMyAdmin) và chạy:
+Open MySQL (phpMyAdmin) and run:
 
 ```sql
 CREATE DATABASE courier_xpress CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-2. **Cập nhật file `.env` trong thư mục `backend`:**
+2. **Update `.env` file in the `backend` directory:**
 
-Mở file `.env` và cập nhật thông tin database:
+Open the `.env` file and update the database information:
 
 ```bash
 DB_CONNECTION=mysql
@@ -107,92 +110,94 @@ DB_PASSWORD=
 DB_COLLATION=utf8mb4_unicode_ci
 ```
 
-**Lưu ý:** DB_PASSWORD để trống không điền mật khẩu
+**Note:** Leave DB_PASSWORD empty if no password is set
 
-### Bước 4: Chạy Migrations và Seeders
+### Step 4: Run Migrations and Seeders
 
-1. **Chạy migrations để tạo bảng:**
+1. **Run migrations to create tables:**
 
 ```bash
 php artisan migrate
 ```
 
-2. **Chạy seeders để tạo dữ liệu mẫu:**
+2. **Run seeders to create sample data:**
 
-**Seed dữ liệu đầy đủ (khuyến nghị, ~2-5 phút)**
+**Seed full data (recommended, ~2-5 minutes)**
+
 ```bash
 php artisan db:seed --class=ComprehensiveDatabaseSeeder
 ```
 
-Seeder sẽ tạo:
-- ✅ 2000+ shipments với đa dạng trạng thái
-- ✅ Dữ liệu trải dài 90 ngày
+The seeder will create:
+
+- ✅ 2000+ shipments with various statuses
+- ✅ Data spanning 90 days
 - ✅ Payment intents, warehouse scans, transit manifests
 - ✅ Admin tasks, notifications, bills
-- ✅ Tài khoản mặc định
+- ✅ Default accounts
 
-### Bước 5: Tạo Storage Link
+### Step 5: Create Storage Link
 
 ```bash
 php artisan storage:link
 ```
 
-Lệnh này tạo symbolic link để lưu trữ file uploads.
+This command creates a symbolic link for file uploads.
 
-### Bước 6: Kiểm tra Backend
+### Step 6: Verify Backend
 
-Chạy server Laravel:
+Run the Laravel server:
 
 ```bash
 php artisan serve
 ```
 
-Server sẽ chạy tại: **http://localhost:8000**
+The server will run at: **http://localhost:8000**
 
-Mở trình duyệt và truy cập: `http://localhost:8000` - bạn sẽ thấy trang welcome của Laravel.
+Open your browser and visit: `http://localhost:8000` - you should see the Laravel welcome page.
 
-**✅ Backend đã sẵn sàng!**
+**✅ Backend is ready!**
 
 ---
 
 ## 🎨 Setup Frontend (React/TypeScript)
 
-### Bước 1: Cài đặt Dependencies
+### Step 1: Install Dependencies
 
-Mở terminal/command prompt mới và di chuyển vào thư mục `frontend`:
+Open a new terminal/command prompt and navigate to the `frontend` directory:
 
 ```bash
 cd frontend
 npm install
-npm install html2canvas 
+npm install html2canvas
 ```
 
-**Lưu ý:** Nếu chưa có Node.js, tải tại: https://nodejs.org/ (chọn LTS version)
+**Note:** If you don't have Node.js, download it at: https://nodejs.org/ (choose LTS version)
 
-### Bước 2: Cấu hình API Endpoint
+### Step 2: Configure API Endpoint
 
-Kiểm tra file `frontend/src/services/api.ts` hoặc file config tương tự để đảm bảo API endpoint trỏ đúng:
+Check the `frontend/src/services/api.ts` or similar config file to ensure the API endpoint is pointing correctly:
 
 ```typescript
-// Thường là:
-const API_BASE_URL = 'http://localhost:8000/api';
+// Usually:
+const API_BASE_URL = "http://localhost:8000/api";
 ```
 
-Nếu backend chạy trên port khác, cập nhật lại.
+If the backend runs on a different port, update it.
 
-### Bước 3: Kiểm tra Frontend
+### Step 3: Verify Frontend
 
-Chạy development server:
+Run the development server:
 
 ```bash
 npm run dev
 ```
 
-Frontend sẽ chạy tại: **http://localhost:5173**
+The frontend will run at: **http://localhost:5173**
 
-Mở trình duyệt và truy cập: `http://localhost:5173` - bạn sẽ thấy giao diện ứng dụng.
+Open your browser and visit: `http://localhost:5173` - you should see the application interface.
 
-**✅ Frontend đã sẵn sàng!**
+**✅ Frontend is ready!**
 
 ---
 
@@ -203,171 +208,190 @@ Mở trình duyệt và truy cập: `http://localhost:5173` - bạn sẽ thấy 
 
 ---
 
-## 👤 Tài Khoản Mặc Định
+## 👤 Default Accounts
 
-Sau khi chạy seeders, các tài khoản sau sẽ được tạo:
+After running seeders, the following accounts will be created:
 
 ### Admin
+
 - **Email:** `admin@courierxpress.com`
 - **Password:** `admin123456`
-- **Quyền:** Full access, quản lý toàn bộ hệ thống
+- **Permissions:** Full access, manage the entire system
 
 ### Agent
+
 - **Email:** `agent@courierxpress.com`
 - **Password:** `agent123456`
-- **Quyền:** Quản lý branch, xem shipments của branch
-- **Branch ID:** Được gán tự động khi chạy seeder (`DatabaseSeeder` sẽ lấy `Branch::first()` và set vào `users.branch_id`).
+- **Permissions:** Manage branch, view branch shipments
+- **Branch ID:** Automatically assigned when running seeder (the first branch will be assigned)
 
 ### Customer
+
 - **Email:** `customer@example.com`
 - **Password:** `customer123`
-- **Quyền:** Tạo và theo dõi shipments của mình
+- **Permissions:** Create and track their own shipments
 
 ---
 
 ## 🔍 Troubleshooting
 
-### Lỗi: "Composer not found"
+### Error: "Composer not found"
 
-**Giải pháp:**
-1. Tải Composer tại: https://getcomposer.org/
-2. Cài đặt và đảm bảo `composer` có trong PATH
-3. Kiểm tra: `composer --version`
+**Solution:**
 
-### Lỗi: "PHP version not supported"
+1. Download Composer at: https://getcomposer.org/
+2. Install and ensure `composer` is in your PATH
+3. Check: `composer --version`
 
-**Giải pháp:**
-1. Kiểm tra PHP version: `php -v`
-2. Cần PHP >= 8.2
-3. Tải PHP mới tại: https://www.php.net/downloads.php
+### Error: "PHP version not supported"
 
-### Lỗi: "Database connection failed"
+**Solution:**
 
-**Giải pháp:**
-1. Kiểm tra MySQL đang chạy:
-   ```bash
-   # Windows
-   net start MySQL80
-   
-   # Linux/Mac
-   sudo systemctl start mysql
-   ```
+1. Check PHP version: `php -v`
+2. Need PHP >= 8.2
+3. Download new PHP at: https://www.php.net/downloads.php
 
-2. Kiểm tra thông tin database trong `.env`:
-   - `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+### Error: "Database connection failed"
 
-3. Test kết nối:
-   ```bash
-   php artisan tinker
-   DB::connection()->getPdo();
-   ```
+**Solution:**
 
-### Lỗi: "Migration failed"
+1. Check if MySQL is running:
 
-**Giải pháp:**
-1. Xóa database và tạo lại:
-   ```sql
-   DROP DATABASE courier_xpress;
-   CREATE DATABASE courier_xpress CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
+    ```bash
+    # Windows
+    net start MySQL80
 
-2. Chạy lại migrations:
-   ```bash
-   php artisan migrate:fresh
-   ```
+    # Linux/Mac
+    sudo systemctl start mysql
+    ```
 
-### Lỗi: "Port 8000 already in use"
+2. Verify database information in `.env`:
+    - `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
 
-**Giải pháp:**
-1. Tìm process đang dùng port 8000:
-   ```bash
-   # Windows
-   netstat -ano | findstr :8000
-   
-   # Linux/Mac
-   lsof -i :8000
-   ```
+3. Test connection:
+    ```bash
+    php artisan tinker
+    DB::connection()->getPdo();
+    ```
 
-2. Kill process hoặc chạy Laravel trên port khác:
-   ```bash
-   php artisan serve --port=8001
-   ```
+### Error: "Migration failed"
 
-3. Cập nhật frontend config để trỏ đến port mới.
+**Solution:**
 
-### Lỗi: "Port 5173 already in use"
+1. Delete and recreate the database:
 
-**Giải pháp:**
-1. Tìm process đang dùng port 5173
-2. Kill process hoặc chạy Vite trên port khác:
-   ```bash
-   npm run dev -- --port 5174
-   ```
+    ```sql
+    DROP DATABASE courier_xpress;
+    CREATE DATABASE courier_xpress CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    ```
 
-### Lỗi: "JWT secret not found"
+2. Run migrations again:
+    ```bash
+    php artisan migrate:fresh
+    ```
 
-**Giải pháp:**
+### Error: "Port 8000 already in use"
+
+**Solution:**
+
+1. Find the process using port 8000:
+
+    ```bash
+    # Windows
+    netstat -ano | findstr :8000
+
+    # Linux/Mac
+    lsof -i :8000
+    ```
+
+2. Kill the process or run Laravel on a different port:
+
+    ```bash
+    php artisan serve --port=8001
+    ```
+
+3. Update frontend config to point to the new port.
+
+### Error: "Port 5173 already in use"
+
+**Solution:**
+
+1. Find the process using port 5173
+2. Kill the process or run Vite on a different port:
+    ```bash
+    npm run dev -- --port 5174
+    ```
+
+### Error: "JWT secret not found"
+
+**Solution:**
+
 ```bash
 php artisan jwt:secret
 ```
 
-### Lỗi: "Storage link failed"
+### Error: "Storage link failed"
 
-**Giải pháp:**
+**Solution:**
+
 ```bash
-# Xóa link cũ (nếu có)
+# Delete old link (if exists)
 rm public/storage  # Linux/Mac
 del public\storage  # Windows
 
-# Tạo lại
+# Create again
 php artisan storage:link
 ```
 
-### Lỗi: "CORS error" khi frontend gọi API
+### Error: "CORS error" when frontend calls API
 
-**Giải pháp:**
-1. Kiểm tra file `backend/config/cors.php`
-2. Đảm bảo `allowed_origins` có chứa `http://localhost:5173`
+**Solution:**
+
+1. Check `backend/config/cors.php`
+2. Ensure `allowed_origins` contains `http://localhost:5173`
 3. Clear cache:
-   ```bash
-   php artisan config:clear
-   php artisan cache:clear
-   ```
+    ```bash
+    php artisan config:clear
+    php artisan cache:clear
+    ```
 
-### Lỗi: "npm install failed"
+### Error: "npm install failed"
 
-**Giải pháp:**
-1. Xóa `node_modules` và `package-lock.json`:
-   ```bash
-   rm -rf node_modules package-lock.json  # Linux/Mac
-   rmdir /s node_modules package-lock.json  # Windows
-   ```
+**Solution:**
 
-2. Cài lại:
-   ```bash
-   npm install
-   ```
+1. Delete `node_modules` and `package-lock.json`:
 
-3. Nếu vẫn lỗi, thử:
-   ```bash
-   npm install --legacy-peer-deps
-   ```
+    ```bash
+    rm -rf node_modules package-lock.json  # Linux/Mac
+    rmdir /s node_modules package-lock.json  # Windows
+    ```
 
-### Lỗi: "Seeder failed"
+2. Install again:
 
-**Giải pháp:**
-1. Kiểm tra database đã có dữ liệu cơ bản chưa (provinces, branches, vehicles)
-2. Chạy seeders theo thứ tự:
-   ```bash
-   php artisan migrate:fresh
-   php artisan db:seed
-   ```
+    ```bash
+    npm install
+    ```
 
-3. Nếu lỗi foreign key constraint, đảm bảo chạy:
-   ```bash
-   php artisan migrate:fresh --seed
-   ```
+3. If still fails, try:
+    ```bash
+    npm install --legacy-peer-deps
+    ```
 
+### Error: "Seeder failed"
 
+**Solution:**
 
-**Chúc bạn setup thành công! 🎉**
+1. Check if the database has basic data (provinces, branches, vehicles)
+2. Run seeders in order:
+
+    ```bash
+    php artisan migrate:fresh
+    php artisan db:seed
+    ```
+
+3. If foreign key constraint error, ensure:
+    ```bash
+    php artisan migrate:fresh --seed
+    ```
+
+**Good luck with your setup! 🎉**
