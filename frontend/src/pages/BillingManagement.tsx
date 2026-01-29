@@ -11,7 +11,10 @@ import {
   ChevronLeft,
   ChevronRight,
   User as UserIcon,
-  ChevronDown
+  ChevronDown,
+  Eye,
+  Pencil,
+  Phone as PhoneIcon
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { BillingService } from '../services/api';
@@ -24,6 +27,7 @@ interface Props {
 /* 
 Khai bao bien cho component BillingManagement
  */
+
 const BillingManagement: React.FC<Props> = ({ user }) => {
   const [showFilters, setShowFilters] = useState(true);
   const [filters, setFilters] = useState({
@@ -40,6 +44,19 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
   const safePage = Math.min(Math.max(1, currentPage), totalPages);
 
   const isCustomer = user.role === UserRole.CUSTOMER;
+
+  // Modal state
+  const [selectedBill, setSelectedBill] = useState<any | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  const openDetailModal = (bill: any) => {
+    setSelectedBill(bill);
+    setShowDetailModal(true);
+  };
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedBill(null);
+  };
 
   /* 
   chức năng useEffect để lấy dữ liệu hóa đơn khi bộ lọc thay đổi
@@ -219,6 +236,15 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                   <td className="pr-8 py-5 text-right">
                     <p className="text-sm font-black text-slate-900">${(tx.amount / 25000).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </td>
+                  <td className="px-6 py-5 text-right flex gap-2 justify-end items-center">
+                    <button
+                      className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-all"
+                      title="Xem chi tiết"
+                      onClick={() => openDetailModal(tx)}
+                    >
+                      <Eye size={18} />
+                    </button>
+                  </td>
                 </tr>
               ))
               )}
@@ -302,6 +328,101 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
           </div>
         </div>
       </section>
+
+
+      {showDetailModal && selectedBill && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-white rounded-2xl shadow-2xl w-[700px] max-w-[95vw] max-h-[80vh] border border-orange-200 overflow-y-auto scrollbar-hide pointer-events-auto animate-in fade-in duration-200">
+            <div className="flex items-center justify-between px-10 pt-8 pb-4 border-b border-orange-100 rounded-t-2xl bg-gradient-to-r from-orange-100 to-white">
+              <h2 className="text-2xl font-extrabold text-orange-600 flex items-center gap-3 tracking-tight">
+                <FileText size={32} className="text-orange-400" /> Thông tin đơn hàng
+              </h2>
+              <button
+                className="p-2 rounded-full hover:bg-orange-200 text-slate-400 hover:text-orange-600 transition-all"
+                onClick={closeDetailModal}
+                title="Đóng"
+              >
+                <XCircle size={28} />
+              </button>
+            </div>
+            <div className="px-10 py-8 space-y-8">
+              {/* Thông tin chung và hàng hóa */}
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-500 font-semibold">Mã đơn hàng</span>
+                    <span className="font-bold text-slate-900 text-base">{selectedBill.trackingId}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-500 font-semibold">Mã hóa đơn</span>
+                    <span className="font-bold text-orange-600 text-base">{selectedBill.id}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-500 font-semibold">Ngày tạo đơn</span>
+                    <span className="font-semibold text-slate-700 text-base">{selectedBill.created_at || selectedBill.date}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-500 font-semibold">Ngày nhận đơn</span>
+                    <span className="font-semibold text-slate-700 text-base">{selectedBill.received_at || '-'}</span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-500 font-semibold">Tên hàng hóa</span>
+                    <span className="font-semibold text-slate-700 text-base">{selectedBill.goods_name || '-'}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-500 font-semibold">Loại hàng hóa</span>
+                    <span className="font-semibold text-slate-700 text-base">{selectedBill.goods_type || '-'}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-500 font-semibold">Loại vận chuyển</span>
+                    <span className="font-semibold text-slate-700 text-base">{selectedBill.shipping_type || '-'}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-500 font-semibold">Cân nặng (kg)</span>
+                    <span className="font-semibold text-slate-700 text-base">{selectedBill.weight || '-'}</span>
+                  </div>
+                  <div className="flex flex-row gap-3">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-slate-500 font-semibold">Dài (cm)</span>
+                      <span className="font-semibold text-slate-700 text-base">{selectedBill.length || '-'}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-slate-500 font-semibold">Rộng (cm)</span>
+                      <span className="font-semibold text-slate-700 text-base">{selectedBill.width || '-'}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-slate-500 font-semibold">Cao (cm)</span>
+                      <span className="font-semibold text-slate-700 text-base">{selectedBill.height || '-'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Thông tin người gửi/nhận */}
+              <div className="grid grid-cols-2 gap-8">
+                <div className="bg-orange-50 rounded-xl p-4 border border-orange-100 flex flex-col gap-1">
+                  <span className="text-xs text-slate-500 font-semibold mb-1">Khách gửi</span>
+                  <span className="font-bold text-slate-700 text-base">{selectedBill.sender_name || '-'}</span>
+                  <span className="text-xs text-slate-400">{selectedBill.sender_phone || '-'}</span>
+                  <span className="text-xs text-slate-400">{selectedBill.sender_address || '-'}</span>
+                </div>
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 flex flex-col gap-1">
+                  <span className="text-xs text-slate-500 font-semibold mb-1">Khách nhận</span>
+                  <span className="font-bold text-slate-700 text-base">{selectedBill.receiver_name || '-'}</span>
+                  <span className="text-xs text-slate-400">{selectedBill.receiver_phone || '-'}</span>
+                  <span className="text-xs text-slate-400">{selectedBill.receiver_address || '-'}</span>
+                </div>
+              </div>
+              {/* Tổng tiền */}
+              <div className="flex flex-col items-end mt-2">
+                <div className="text-base text-slate-500 font-semibold">Tổng tiền</div>
+                <div className="font-extrabold text-2xl text-green-600">${(selectedBill.amount / 25000).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

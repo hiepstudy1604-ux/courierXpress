@@ -18,7 +18,7 @@ class BillingController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             // Only get bills from shipments that are DELIVERED_SUCCESS
             $query = Bill::with(['shipment.user', 'user'])
                 ->whereHas('shipment', function ($q) {
@@ -43,18 +43,24 @@ class BillingController extends Controller
                 // Remove 'CX-' prefix if present and extract numeric ID
                 $numericId = preg_replace('/^CX-/', '', $trackingId);
                 $numericId = preg_replace('/[^0-9]/', '', $numericId);
-                
+
                 if ($numericId) {
                     $query->whereHas('shipment', function ($q) use ($numericId) {
                         $q->where('shipment_id', $numericId);
                     });
                 }
             }
-            
+
             if ($request->has('bill_id')) {
-                $query->where('bill_number', 'like', '%' . $request->bill_id . '%');
+                if ($request->has('bill_id')) {
+                    $billId = $request->bill_id;
+                    $query->where(function ($q) use ($billId) {
+                        $q->where('bill_number', $billId)
+                            ->orWhere('id', $billId);
+                    });
+                }
             }
-            
+
             if ($request->has('date')) {
                 $query->whereDate('created_at', $request->date);
             }
@@ -67,7 +73,7 @@ class BillingController extends Controller
                 'data' => $bills->map(function ($bill) {
                     $shipment = $bill->shipment;
                     $trackingId = $shipment ? 'CX-' . str_pad((string) $shipment->shipment_id, 8, '0', STR_PAD_LEFT) : null;
-                    
+
                     return [
                         'id' => (string) $bill->id,
                         'bill_id' => $bill->bill_number,
