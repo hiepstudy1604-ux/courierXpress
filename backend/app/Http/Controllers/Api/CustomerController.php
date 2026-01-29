@@ -58,7 +58,7 @@ class CustomerController extends Controller
         $query = User::where('role', 'CUSTOMER');
 
         // 3. Apply Filters / Áp dụng bộ lọc
-        
+
         // Filter by Name / Lọc theo Tên
         if ($request->has('name')) {
             $query->where('name', 'like', '%' . $request->name . '%');
@@ -256,11 +256,11 @@ class CustomerController extends Controller
 
         // Validation / Xác thực dữ liệu
         $validator = \Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|max:255|unique:users,email,' . $customer->id,
-            'phone' => 'sometimes|nullable|string|max:20',
-            'address' => 'sometimes|nullable|string|max:500',
-            'city' => 'sometimes|nullable|string|max:100',
+            // 'name' => 'sometimes|required|string|max:255',
+            // 'email' => 'sometimes|required|email|max:255|unique:users,email,' . $customer->id,
+            // 'phone' => 'sometimes|nullable|string|max:20',
+            // 'address' => 'sometimes|nullable|string|max:500',
+            // 'city' => 'sometimes|nullable|string|max:100',
             'status' => 'sometimes|string|in:Active,Blocked,Inactive',
         ]);
 
@@ -274,7 +274,9 @@ class CustomerController extends Controller
 
         // Build the data array for mass update (Only allow specific fields)
         // Xây dựng mảng dữ liệu để cập nhật hàng loạt (Chỉ cho phép các trường cụ thể)
-        $updateData = $request->only(['name', 'email', 'phone', 'address', 'city']);
+        // Per user request, editing customer details is disabled. Only status updates are allowed.
+        // Theo yêu cầu người dùng, việc chỉnh sửa thông tin khách hàng đã bị vô hiệu hóa. Chỉ cho phép cập nhật trạng thái.
+        $updateData = [];
 
         // Handle Status Update (Admin/Agent Only)
         // Xử lý cập nhật Trạng thái (Chỉ Admin/Agent)

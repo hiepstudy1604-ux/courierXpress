@@ -80,15 +80,19 @@ class ReportController extends Controller
             // Kiểm soát truy cập dựa trên vai trò
             $branchId = null;
             if ($user->role === 'AGENT') {
-                if (!$user->branch_id) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Agent must be assigned to a branch'
-                    ], 403);
+                // Custom requirement: Force Agent view to Da Nang branch data for consistency with Dashboard.
+                // Yêu cầu tùy chỉnh: Buộc giao diện Agent hiển thị dữ liệu của chi nhánh Đà Nẵng để nhất quán với Dashboard.
+                $danangBranch = Branch::where('city', 'like', '%Đà Nẵng%')->first();
+                if ($danangBranch) {
+                    $branchId = $danangBranch->id;
+                } else {
+                    // Fallback to the user's assigned branch if Da Nang branch is not found.
+                    // Quay lại chi nhánh được gán của người dùng nếu không tìm thấy chi nhánh Đà Nẵng.
+                    $branchId = $user->branch_id;
                 }
-                // Agents are strictly limited to their branch data
-                // Agent bị giới hạn nghiêm ngặt trong dữ liệu chi nhánh của họ
-                $branchId = $user->branch_id;
+                if (!$branchId) {
+                    return response()->json(['success' => false, 'message' => 'Agent branch could not be determined.'], 403);
+                }
             }
 
             // P8.2: Collect operational data
@@ -165,7 +169,19 @@ class ReportController extends Controller
 
             $branchId = null;
             if ($user->role === 'AGENT') {
-                $branchId = $user->branch_id;
+                // Custom requirement: Force Agent view to Da Nang branch data for consistency with Dashboard.
+                // Yêu cầu tùy chỉnh: Buộc giao diện Agent hiển thị dữ liệu của chi nhánh Đà Nẵng để nhất quán với Dashboard.
+                $danangBranch = Branch::where('city', 'like', '%Đà Nẵng%')->first();
+                if ($danangBranch) {
+                    $branchId = $danangBranch->id;
+                } else {
+                    // Fallback to the user's assigned branch if Da Nang branch is not found.
+                    // Quay lại chi nhánh được gán của người dùng nếu không tìm thấy chi nhánh Đà Nẵng.
+                    $branchId = $user->branch_id;
+                }
+                if (!$branchId) {
+                    return response()->json(['success' => false, 'message' => 'Agent branch could not be determined for export.'], 403);
+                }
             }
 
             // Collect and aggregate data (Reuse logic from index)
@@ -538,7 +554,8 @@ class ReportController extends Controller
      * Helper to map vehicle types to standard output keys.
      * Hàm hỗ trợ ánh xạ loại phương tiện sang các key đầu ra tiêu chuẩn.
      */
-    private function mapVehicleTypes($counts) {
+    private function mapVehicleTypes($counts)
+    {
         return [
             'Motorbike' => $counts['Motorbike'] ?? 0,
             '2.5-ton Truck' => $counts['2.5-ton Truck'] ?? 0,
@@ -789,11 +806,11 @@ class ReportController extends Controller
             $displayLabel = $current->format('M d');
 
             $standard = 0;
-            $express  = 0;
+            $express = 0;
             if ($grouped->has($dateKey)) {
                 $group = $grouped->get($dateKey);
                 $standard = $group->where('service_type', 'STANDARD')->count();
-                $express  = $group->where('service_type', 'EXPRESS')->count();
+                $express = $group->where('service_type', 'EXPRESS')->count();
             }
 
             $trends[] = [
@@ -886,11 +903,20 @@ class ReportController extends Controller
 
             // Check authorization: Agent can only access their branch's reports
             // Kiểm tra quyền: Agent chỉ có thể truy cập báo cáo của chi nhánh họ
-            if ($user->role === 'AGENT' && $snapshot->branch_id !== $user->branch_id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized'
-                ], 403);
+            if ($user->role === 'AGENT') {
+                // For consistency, Agent access is hardcoded to the Da Nang branch report.
+                // Để đảm bảo tính nhất quán, quyền truy cập của Agent được gán cố định cho báo cáo của chi nhánh Đà Nẵng.
+                $danangBranch = Branch::where('city', 'like', '%Đà Nẵng%')->first();
+                $allowedBranchId = $danangBranch ? $danangBranch->id : null;
+
+                // The snapshot's branch_id must match the allowed Da Nang branch ID.
+                // branch_id của snapshot phải khớp với ID chi nhánh Đà Nẵng được cho phép.
+                if (!$allowedBranchId || $snapshot->branch_id != $allowedBranchId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized. Agents can only access Da Nang reports.'
+                    ], 403);
+                }
             }
 
             // Verify file existence

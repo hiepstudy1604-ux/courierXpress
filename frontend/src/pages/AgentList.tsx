@@ -219,27 +219,6 @@ const AgentList: React.FC = () => {
         }
     };
 
-    const handleDeleteBranch = async (id: string, branchName: string) => {
-        if (
-            !confirm(
-                `Are you sure you want to PERMANENTLY delete branch "${branchName}"?\nThis action cannot be undone.`,
-            )
-        ) {
-            return;
-        }
-
-        try {
-            // Gọi API xóa
-            await api.delete(`/admin/branches/${id}`);
-
-            // Xóa xong thì load lại danh sách
-            await fetchBranches();
-            alert("Branch deleted successfully!");
-        } catch (err: any) {
-            console.error("Error deleting branch:", err);
-            alert(err.response?.data?.message || "Failed to delete branch");
-        }
-    };
 
     const handleSaveEdit = async () => {
         if (!editAgent) return;
@@ -535,13 +514,6 @@ const AgentList: React.FC = () => {
                                         <Edit2 size={14} className="text-[#f97316]" /> Edit
                                     </button>
                                 </div>
-                                <button
-                                    onClick={() => handleDeleteBranch(agent.branchId || agent.id, agent.name)}
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-[11px] font-black hover:bg-rose-100 transition-all shadow-sm active:scale-95"
-                                    title="Delete Branch"
-                                >
-                                    <Trash2 size={14} /> Delete
-                                </button>
                                 <div className="flex items-center gap-2">
                                     <span className="text-[9px] font-black text-slate-400 uppercase">
                                         Operational Status

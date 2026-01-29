@@ -55,8 +55,18 @@ class DashboardController extends Controller
         // Xác định Phạm vi dựa trên Vai trò
         if ($user->role === 'AGENT') {
             // Agents are strictly limited to their assigned branch.
-            // Agent bị giới hạn nghiêm ngặt trong chi nhánh được phân công.
-            $branchId = $user->branch_id;
+            // Agent bị giới hạn nghiêm ngặt trong chi nhánh được phân công.            
+            // Custom requirement: Force Agent view to Da Nang branch data.
+            // Yêu cầu tùy chỉnh: Buộc giao diện Agent hiển thị dữ liệu của chi nhánh Đà Nẵng.
+            $danangBranch = Branch::where('city', 'like', '%Đà Nẵng%')->first();
+            if ($danangBranch) {
+                $branchId = $danangBranch->id;
+            } else {
+                // Fallback to the user's assigned branch if Da Nang branch is not found.
+                // Quay lại chi nhánh được gán của người dùng nếu không tìm thấy chi nhánh Đà Nẵng.
+                $branchId = $user->branch_id;
+            }
+
         } elseif ($user->role === 'ADMIN' && $request->has('branch_id') && $request->input('branch_id') !== 'all') {
             // Admins can see all data but optionally filter by a specific branch.
             // Admin có thể xem tất cả dữ liệu nhưng có tùy chọn lọc theo một điểm cụ thể.
@@ -765,116 +775,5 @@ class DashboardController extends Controller
         ];
 
         return $map[$branchCityName] ?? null;
-    }
-
-    /**
-     * Get revenue statistics data for dashboard charts.
-     * Lấy dữ liệu thống kê doanh thu cho biểu đồ dashboard.
-     * 
-     * @param Request $request Contains 'period' (day, week, month, year).
-     * Chứa 'period' (ngày, tuần, tháng, năm).
-     * @return \Illuminate\Http\JsonResponse JSON object with labels and revenue values.
-     * Đối tượng JSON chứa nhãn và giá trị doanh thu.
-     */
-    public function getRevenueStats(Request $request)
-    {
-        // Get the currently authenticated user to determine data access scope.
-        // Lấy người dùng đã đăng nhập để xác định phạm vi truy cập dữ liệu.
-        $user = Auth::user();
-        
-        // Default to 'month' if no period is provided to ensure the chart always has a fallback view.
-        // Mặc định là 'month' nếu không có tham số period để đảm bảo biểu đồ luôn có dữ liệu hiển thị.
-        $period = $request->input('period', 'month');
-        
-        // Get branch_id from request (admin filter) or use user's branch_id (agent)
-        // Lấy branch_id từ request (admin filter) hoặc dùng branch_id của user (agent)
-        $branchId = $request->input('branch_id') ?? ($user && $user->role === 'AGENT' ? $user->branch_id : null);
-
-        // Initialize query on the bills table to sum total amounts.
-        // Khởi tạo truy vấn trên bảng bills để tính tổng số tiền.
-        $query = Bill::query()
-            ->selectRaw('SUM(bills.total_amount) as revenue')
-            // Only consider 'PAID' status to ensure revenue reflects actual collected money.
-            // Chỉ tính các hóa đơn 'PAID' để đảm bảo doanh thu phản ánh số tiền thực tế đã thu.
-            ->where('bills.bill_status', 'PAID');
-
-        /**
-         * BRANCH FILTERING / LỌC THEO CHI NHÁNH:
-         * If there's a branch_id (from request or user's branch), filter by it.
-         * Since 'bills' might not have branch info directly, we join with 'shipments'.
-         * 
-         * Nếu có branch_id (từ request hoặc branch của user), lọc theo nó.
-         * Vì bảng 'bills' có thể không có thông tin chi nhánh trực tiếp, ta phải join với bảng 'shipments'.
-         */
-        if ($branchId) {
-            $query->join('shipments', 'bills.shipment_id', '=', 'shipments.shipment_id')
-                ->where('shipments.assigned_branch_id', $branchId);
-        }
-
-        $dateFormat = "";
-        $groupBy = "";
-
-        /**
-         * TIME GRANULARITY LOGIC / LOGIC VỀ ĐỘ CHI TIẾT THỜI GIAN:
-         * Depending on the period, we group data by year, month, week, or day.
-         * This determines how the X-axis of the chart will be labeled.
-         * 
-         * Tùy thuộc vào period, chúng ta nhóm dữ liệu theo năm, tháng, tuần hoặc ngày.
-         * Điều này quyết định nhãn của trục X trên biểu đồ sẽ hiển thị như thế nào.
-         */
-        switch ($period) {
-            case 'year':
-                $dateFormat = "YEAR(bills.created_at)";
-                $groupBy = "YEAR(bills.created_at)";
-                break;
-            case 'month':
-                // Format 'YYYY-MM' for monthly grouping.
-                // Định dạng 'YYYY-MM' để nhóm theo tháng.
-                $dateFormat = "DATE_FORMAT(bills.created_at, '%Y-%m')";
-                $groupBy = "DATE_FORMAT(bills.created_at, '%Y-%m')";
-                break;
-            case 'week':
-                // Format 'YYYY-WW' (Year-WeekNumber) to handle overlaps between years.
-                // Định dạng 'YYYY-WW' (Năm-SốTuần) để xử lý các tuần giao thoa giữa các năm.
-                $dateFormat = "DATE_FORMAT(bills.created_at, '%x-%v')";
-                $groupBy = "DATE_FORMAT(bills.created_at, '%x-%v')";
-                break;
-            case 'day':
-            default:
-                // Format 'YYYY-MM-DD' for daily breakdown.
-                // Định dạng 'YYYY-MM-DD' để phân tích theo ngày.
-                $dateFormat = "DATE(bills.created_at)";
-                $groupBy = "DATE(bills.created_at)";
-                break;
-        }
-
-        // Apply dynamic date formatting and grouping to the query.
-        // Áp dụng định dạng ngày và nhóm dữ liệu động vào truy vấn.
-        $query->selectRaw("{$dateFormat} as label")
-            ->groupBy(DB::raw($groupBy))
-            ->orderBy('label', 'asc');
-
-        /**
-         * DATA LIMITATION / GIỚI HẠN DỮ LIỆU:
-         * We fetch the 12 most recent time points (e.g., last 12 months) for UI clarity.
-         * We sort descending to get the 'latest' first, then reverse for chronological order.
-         * 
-         * Lấy 12 điểm dữ liệu gần nhất (ví dụ: 12 tháng qua) để biểu đồ rõ ràng.
-         * Sắp xếp giảm dần để lấy các bản ghi 'mới nhất' trước, sau đó đảo ngược lại để đúng thứ tự thời gian.
-         */
-        $stats = $query->orderBy('label', 'desc')->limit(12)->get()->reverse();
-
-        // Standardize the output format for the frontend charting library (e.g., Chart.js or Recharts).
-        // Chuẩn hóa định dạng đầu ra cho các thư viện biểu đồ frontend.
-        $formattedData = $stats->map(function ($item) {
-            return [
-                'name' => $item->label, // Label for X-axis / Nhãn cho trục X
-                'revenue' => (float) $item->revenue, // Ensure revenue is a float for calculations / Đảm bảo doanh thu là số thực để tính toán.
-            ];
-        });
-
-        // Return a successful JSON response.
-        // Trả về phản hồi JSON thành công.
-        return response()->json(['success' => true, 'data' => $formattedData]);
     }
 }

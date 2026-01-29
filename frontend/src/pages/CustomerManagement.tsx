@@ -6,8 +6,6 @@ import {
   Eye,
   Copy,
   ClipboardCheck,
-  Edit2,
-  Save,
   X,
   ChevronLeft,
   ChevronRight,
@@ -111,17 +109,8 @@ const CustomerManagement: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(true);
 
-  // State for Details & Edit Modals / Trạng thái cho các Modal Chi tiết & Chỉnh sửa
   const [selectedCustomer, setSelectedCustomer] =
     useState<CustomerDetail | null>(null);
-  const [editCustomer, setEditCustomer] = useState<ExtendedCustomer | null>(
-    null,
-  );
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [updateError, setUpdateError] = useState<string | null>(null);
-
-  // State for Success Notification Modal / Trạng thái modal thông báo thành công
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // --- NEW: State for Action Confirmation Modal ---
   // Stores the pending action to be confirmed by the user before execution.
@@ -136,7 +125,7 @@ const CustomerManagement: React.FC = () => {
     useState<ShipmentDetailType | null>(null);
   const [isShipmentLoading, setIsShipmentLoading] = useState(false);
   const [shipmentError, setShipmentError] = useState<string | null>(null);
-  
+
   // Tracks which specific shipment ID is loading to show a spinner inline.
   // Theo dõi ID vận đơn cụ thể nào đang tải để hiển thị vòng quay (spinner) tại dòng đó.
   const [loadingShipmentId, setLoadingShipmentId] = useState<string | null>(
@@ -360,58 +349,6 @@ const CustomerManagement: React.FC = () => {
       alert(errorMsg);
     } finally {
       setLoadingShipmentId(null);
-    }
-  };
-
-  /**
-   * Submits updated customer information to the backend.
-   * Gửi thông tin khách hàng đã cập nhật lên backend.
-   */
-  const handleUpdate = async () => {
-    if (!editCustomer) return;
-
-    setIsUpdating(true);
-    setUpdateError(null);
-
-    try {
-      const response = await CustomerService.update(editCustomer.id, {
-        name: editCustomer.name,
-        email: editCustomer.email,
-        phone: editCustomer.phone,
-        address: editCustomer.address,
-        city: editCustomer.city,
-      });
-
-      if (response.data.success) {
-        // Update master state directly to reflect changes without refetching
-        // Cập nhật trực tiếp trạng thái tổng để phản ánh thay đổi mà không cần tải lại
-        const updateList = (list: ExtendedCustomer[]) =>
-          list.map((c) =>
-            c.id === editCustomer.id
-              ? {
-                  ...c,
-                  name: editCustomer.name,
-                  email: editCustomer.email,
-                  phone: editCustomer.phone,
-                  address: editCustomer.address,
-                  city: editCustomer.city,
-                }
-              : c,
-          );
-
-        setAllCustomers((prev) => updateList(prev));
-        setEditCustomer(null);
-        setShowSuccessModal(true);
-      } else {
-        setUpdateError("Failed to update customer");
-      }
-    } catch (err: any) {
-      console.error("Error updating customer:", err);
-      setUpdateError(
-        err.response?.data?.message || "Failed to update customer",
-      );
-    } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -904,13 +841,6 @@ const CustomerManagement: React.FC = () => {
                         >
                           <Eye size={18} />
                         </button>
-                        <button
-                          onClick={() => setEditCustomer(c)}
-                          className="p-2 text-slate-400 hover:text-blue-600 transition-all hover:bg-blue-50 rounded-xl border border-transparent hover:border-blue-100 shadow-sm"
-                          title="Edit"
-                        >
-                          <Edit2 size={18} />
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -1377,168 +1307,6 @@ const CustomerManagement: React.FC = () => {
                 Close
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: Edit Customer / MODAL: Chỉnh sửa Khách hàng */}
-      {editCustomer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={() => setEditCustomer(null)}
-          ></div>
-          <div className="relative bg-white rounded-[40px] w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
-            <div className="p-8 pb-4 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center border border-orange-100">
-                  <Edit2 size={24} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                    Update Customer
-                  </h3>
-                  <p className="text-[10px] font-black text-orange-600 tracking-widest uppercase">
-                    {editCustomer.id}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setEditCustomer(null)}
-                className="p-3 text-slate-400 hover:bg-slate-50 rounded-2xl transition-all"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-8 overflow-y-auto space-y-6 scrollbar-hide">
-              {updateError && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-600 px-4 py-3 rounded-2xl text-sm font-semibold">
-                  {updateError}
-                </div>
-              )}
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 ml-1">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  value={editCustomer.name}
-                  onChange={(e) =>
-                    setEditCustomer({ ...editCustomer, name: e.target.value })
-                  }
-                  className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 outline-none transition-all font-black text-slate-700"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 ml-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  value={editCustomer.email}
-                  onChange={(e) =>
-                    setEditCustomer({ ...editCustomer, email: e.target.value })
-                  }
-                  className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 outline-none transition-all font-black text-slate-700"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 ml-1">
-                  Phone
-                </label>
-                <input
-                  type="text"
-                  value={editCustomer.phone}
-                  onChange={(e) =>
-                    setEditCustomer({ ...editCustomer, phone: e.target.value })
-                  }
-                  className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 outline-none transition-all font-black text-slate-700"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 ml-1">
-                  City
-                </label>
-                <input
-                  type="text"
-                  value={editCustomer.city}
-                  onChange={(e) =>
-                    setEditCustomer({ ...editCustomer, city: e.target.value })
-                  }
-                  className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 outline-none transition-all font-black text-slate-700"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 ml-1">
-                  Address
-                </label>
-                <textarea
-                  value={editCustomer.address}
-                  onChange={(e) =>
-                    setEditCustomer({
-                      ...editCustomer,
-                      address: e.target.value,
-                    })
-                  }
-                  rows={3}
-                  className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 outline-none transition-all font-black text-slate-700 resize-none"
-                />
-              </div>
-            </div>
-
-            <div className="p-8 bg-slate-50 border-t border-slate-100 flex items-center justify-between sticky bottom-0 z-10">
-              <button
-                onClick={() => setEditCustomer(null)}
-                className="px-8 py-3.5 bg-white border border-slate-200 rounded-2xl font-black text-slate-600 hover:bg-slate-100 transition-all shadow-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpdate}
-                disabled={isUpdating}
-                className="px-12 py-3.5 bg-[#f97316] text-white rounded-2xl font-black shadow-lg hover:bg-[#ea580c] transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
-              >
-                {isUpdating ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <Save size={18} />
-                )}
-                {isUpdating ? "Updating..." : "Save Changes"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: Success Notification / MODAL: Thông báo thành công */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={() => setShowSuccessModal(false)}
-          ></div>
-          <div className="relative bg-white rounded-[32px] p-8 w-full max-w-sm shadow-2xl flex flex-col items-center justify-center text-center animate-in zoom-in duration-300">
-            <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-4 border-4 border-emerald-100">
-              <CheckCircle2 size={32} strokeWidth={3} />
-            </div>
-            <h3 className="text-xl font-black text-slate-900 mb-2">Success</h3>
-            <p className="text-sm font-medium text-slate-500 mb-6">
-              Customer profile updated successfully
-            </p>
-            <button
-              onClick={() => setShowSuccessModal(false)}
-              className="w-full py-3.5 bg-slate-900 text-white rounded-2xl font-black shadow-lg hover:bg-black transition-all active:scale-95"
-            >
-              OK
-            </button>
           </div>
         </div>
       )}
