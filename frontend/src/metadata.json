@@ -1,0 +1,8 @@
+{
+    "name": "CourierXpress Automation System",
+    "description": "A comprehensive logistics management application for admins, agents, and customers to manage bookings, billing, delivery tracking, and reporting.",
+    "requestFramePermissions": [
+      "camera",
+      "microphone"
+    ]
+  }

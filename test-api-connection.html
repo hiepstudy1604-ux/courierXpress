@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Connection - CourierXpress</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .test-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #f97316;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        button {
+            background: #f97316;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #ea580c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .result.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .status.online {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .api-url {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            background: #f0f0f0;
+            padding: 8px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Test API Connection</h1>
+        <p class="subtitle">Kiểm tra kết nối giữa Frontend và Backend</p>
+        
+        <div class="api-url">
+            <strong>Backend URL:</strong> <span id="apiUrl">http://localhost:8000/api</span>
+        </div>
+
+        <div id="status" class="status offline">● Backend: Đang kiểm tra...</div>
+
+        <div class="test-section">
+            <h3>1. Test Đăng ký (Register)</h3>
+            <button onclick="testRegister()">Test Register API</button>
+            <div id="registerResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Test Đăng nhập (Login)</h3>
+            <button onclick="testLogin()">Test Login API</button>
+            <div id="loginResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Test Lấy thông tin User (Me)</h3>
+            <button onclick="testMe()" id="meButton" disabled>Test Me API (Cần đăng nhập trước)</button>
+            <div id="meResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        let authToken = null;
+
+        // Kiểm tra backend có online không
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'OPTIONS',
+                });
+                updateStatus(true);
+            } catch (error) {
+                // Thử ping trực tiếp
+                try {
+                    const response = await fetch('http://localhost:8000', { method: 'HEAD' });
+                    updateStatus(true);
+                } catch (e) {
+                    updateStatus(false);
+                }
+            }
+        }
+
+        function updateStatus(isOnline) {
+            const statusEl = document.getElementById('status');
+            if (isOnline) {
+                statusEl.textContent = '● Backend: Online ✓';
+                statusEl.className = 'status online';
+            } else {
+                statusEl.textContent = '● Backend: Offline ✗';
+                statusEl.className = 'status offline';
+            }
+        }
+
+        async function testRegister() {
+            const resultDiv = document.getElementById('registerResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Đang test đăng ký...';
+
+            const testEmail = `test${Date.now()}@example.com`;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: 'Test User',
+                        email: testEmail,
+                        password: 'password123',
+                        role: 'CUSTOMER'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Thành công!\n\nStatus: ${response.status}\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Lỗi!\n\nStatus: ${response.status}\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Lỗi kết nối!\n\n${error.message}\n\nKiểm tra:\n- Backend có đang chạy không?\n- URL có đúng không?\n- CORS đã được cấu hình chưa?`;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('loginResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Đang test đăng nhập...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'password123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    authToken = data.token;
+                    document.getElementById('meButton').disabled = false;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Đăng nhập thành công!\n\nStatus: ${response.status}\n\nToken đã được lưu.\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Đăng nhập thất bại!\n\nStatus: ${response.status}\n\nLưu ý: Cần tạo tài khoản trước bằng Test Register\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Lỗi kết nối!\n\n${error.message}`;
+            }
+        }
+
+        async function testMe() {
+            if (!authToken) {
+                alert('Vui lòng đăng nhập trước!');
+                return;
+            }
+
+            const resultDiv = document.getElementById('meResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Đang lấy thông tin user...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Thành công!\n\nStatus: ${response.status}\n\nUser Info:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Lỗi!\n\nStatus: ${response.status}\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Lỗi kết nối!\n\n${error.message}`;
+            }
+        }
+
+        // Kiểm tra status khi load trang
+        checkBackendStatus();
+        setInterval(checkBackendStatus, 5000); // Kiểm tra mỗi 5 giây
+    </script>
+</body>
+</html>
