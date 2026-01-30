@@ -352,7 +352,7 @@ const OnTheWayPickupDetail: React.FC<OnTheWayPickupDetailProps> = ({ shipment, b
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-[11px] font-semibold text-slate-400 mb-0.5">
-                                            Kích thước ước tính (L x W x H)
+                                            Estimated Dimensions (L x W x H)
                                         </p>
                                         <p className="text-xs font-semibold text-slate-800">{estimatedDimensions}</p>
                                     </div>
@@ -368,7 +368,7 @@ const OnTheWayPickupDetail: React.FC<OnTheWayPickupDetailProps> = ({ shipment, b
                                             htmlFor="verifiedDimensions"
                                             className="text-xs font-semibold text-slate-700 cursor-pointer"
                                         >
-                                            Đã xác nhận
+                                            Confirmed
                                         </label>
                                     </div>
                                 </div>
@@ -377,9 +377,7 @@ const OnTheWayPickupDetail: React.FC<OnTheWayPickupDetailProps> = ({ shipment, b
 
                             {/* Thể tích ước tính */}
                             <div className="py-4 px-2">
-                                <p className="text-[11px] font-semibold text-slate-400 mb-0.5">
-                                    Thể tích (m³) ước tính
-                                </p>
+                                <p className="text-[11px] font-semibold text-slate-400 mb-0.5">Estimated Volume (m³)</p>
                                 <p className="text-xs font-semibold text-slate-800">{estimatedVolume}</p>
                             </div>
                             <hr className="border-t border-slate-100 mx-2" />
@@ -389,7 +387,7 @@ const OnTheWayPickupDetail: React.FC<OnTheWayPickupDetailProps> = ({ shipment, b
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-[11px] font-semibold text-slate-400 mb-0.5">
-                                            Cân nặng ước tính
+                                            Estimated Weight
                                         </p>
                                         <p className="text-xs font-semibold text-slate-800">{estimatedWeight}</p>
                                     </div>
@@ -405,7 +403,7 @@ const OnTheWayPickupDetail: React.FC<OnTheWayPickupDetailProps> = ({ shipment, b
                                             htmlFor="verifiedWeight"
                                             className="text-xs font-semibold text-slate-700 cursor-pointer"
                                         >
-                                            Đã xác nhận
+                                            Confirmed
                                         </label>
                                     </div>
                                 </div>
@@ -415,7 +413,7 @@ const OnTheWayPickupDetail: React.FC<OnTheWayPickupDetailProps> = ({ shipment, b
                             {/* Ảnh đơn hàng */}
                             <div className="py-4 px-2">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-[11px] font-semibold text-slate-400 mb-0.5">Ảnh đơn hàng</p>
+                                    <p className="text-[11px] font-semibold text-slate-400 mb-0.5">Order Photo</p>
                                     <div className="flex items-center gap-2 ml-2">
                                         <input
                                             type="checkbox"
@@ -428,7 +426,7 @@ const OnTheWayPickupDetail: React.FC<OnTheWayPickupDetailProps> = ({ shipment, b
                                             htmlFor="verifiedImage"
                                             className="text-xs font-semibold text-slate-700 cursor-pointer"
                                         >
-                                            Đã xác nhận
+                                            Confirmed
                                         </label>
                                     </div>
                                 </div>
@@ -1017,9 +1015,9 @@ const CheckPriceDetail: React.FC<CheckPriceDetailProps> = ({
         const collected = parseFloat(cashAmountCollected || "0");
         if (!cashAmountCollected) return { label: "—", cls: "text-slate-500" };
         const diff = collected - target;
-        if (Math.abs(diff) < 0.00001) return { label: "Khớp", cls: "text-emerald-600" };
-        if (diff > 0) return { label: `Dư: ${formatMoney(diff)}`, cls: "text-amber-600" };
-        return { label: `Thiếu: ${formatMoney(Math.abs(diff))}`, cls: "text-rose-600" };
+        if (Math.abs(diff) < 0.00001) return { label: "Matched", cls: "text-emerald-600" };
+        if (diff > 0) return { label: `Over: ${formatMoney(diff)}`, cls: "text-amber-600" };
+        return { label: `Short: ${formatMoney(Math.abs(diff))}`, cls: "text-rose-600" };
     }, [cashAmountCollected, amountToCollect]);
 
     const transferBank = "VP Bank";
@@ -1250,6 +1248,7 @@ const CheckPriceDetail: React.FC<CheckPriceDetailProps> = ({
                     <div>
                         <p className="text-[11px] font-semibold text-slate-400 mb-1">Amount to collect</p>
                         <input
+                            aria-label="Amount to collect"
                             type="text"
                             readOnly
                             value={formatMoney(amountToCollect)}
@@ -1296,6 +1295,7 @@ const CheckPriceDetail: React.FC<CheckPriceDetailProps> = ({
                             <div className="md:col-span-2">
                                 <p className="text-[11px] font-semibold text-slate-400 mb-1">Amount collected</p>
                                 <input
+                                    aria-label="Cash amount collected"
                                     type="number"
                                     disabled={paymentMethod !== "CASH"}
                                     placeholder="Enter the amount collected"
@@ -1344,6 +1344,7 @@ const CheckPriceDetail: React.FC<CheckPriceDetailProps> = ({
                                 <p className="text-[11px] font-semibold text-slate-400 mb-1">Bank</p>
                                 <div className="flex items-center gap-2">
                                     <input
+                                        aria-label="Bank account"
                                         type="text"
                                         readOnly
                                         value={transferBank}
@@ -1363,6 +1364,7 @@ const CheckPriceDetail: React.FC<CheckPriceDetailProps> = ({
                                 <p className="text-[11px] font-semibold text-slate-400 mb-1">Account number</p>
                                 <div className="flex items-center gap-2">
                                     <input
+                                        aria-label="Account number"
                                         type="text"
                                         readOnly
                                         value={transferAccountNumber}
@@ -1382,6 +1384,7 @@ const CheckPriceDetail: React.FC<CheckPriceDetailProps> = ({
                                 <p className="text-[11px] font-semibold text-slate-400 mb-1">Account name</p>
                                 <div className="flex items-center gap-2">
                                     <input
+                                        aria-label="Account name"
                                         type="text"
                                         readOnly
                                         value={transferAccountName}
@@ -1401,6 +1404,7 @@ const CheckPriceDetail: React.FC<CheckPriceDetailProps> = ({
                                 <p className="text-[11px] font-semibold text-slate-400 mb-1">Amount</p>
                                 <div className="flex items-center gap-2">
                                     <input
+                                        aria-label="Transfer amount"
                                         type="number"
                                         disabled={paymentMethod !== "TRANSFER"}
                                         value={transferAmount}
@@ -1421,6 +1425,7 @@ const CheckPriceDetail: React.FC<CheckPriceDetailProps> = ({
                                 <p className="text-[11px] font-semibold text-slate-400 mb-1">Transfer description</p>
                                 <div className="flex items-center gap-2">
                                     <input
+                                        aria-label="Transfer description"
                                         type="text"
                                         readOnly
                                         value={transferNote}
@@ -2197,13 +2202,13 @@ const PickupCompleteDetail: React.FC<PickupCompleteDetailProps> = ({
                 {/* Create reconciliation session */}
                 <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
                     <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-sm font-bold text-slate-900">Tạo phiên đối soát</h2>
+                        <h2 className="text-sm font-bold text-slate-900">Create Reconciliation Session</h2>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div className="lg:col-span-12 space-y-4">
                             <div>
-                                <p className="text-[11px] font-semibold text-slate-400 mb-2">Chọn ca</p>
+                                <p className="text-[11px] font-semibold text-slate-400 mb-2">Select shift</p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <label
                                         className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-colors ${reconShift === "SHIFT_1" ? "border-orange-400 bg-orange-50" : "border-slate-200 hover:bg-slate-50"}`}
@@ -2240,8 +2245,9 @@ const PickupCompleteDetail: React.FC<PickupCompleteDetailProps> = ({
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-[11px] font-semibold text-slate-400 mb-1">Thời gian check-in</p>
+                                    <p className="text-[11px] font-semibold text-slate-400 mb-1">Check-in Time</p>
                                     <input
+                                        aria-label="Check-in time"
                                         type="datetime-local"
                                         value={checkInTime}
                                         onChange={(e) => setCheckInTime(e.target.value)}
@@ -2249,9 +2255,12 @@ const PickupCompleteDetail: React.FC<PickupCompleteDetailProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <p className="text-[11px] font-semibold text-slate-400 mb-1">ID đơn cần đối soát</p>
+                                    <p className="text-[11px] font-semibold text-slate-400 mb-1">
+                                        Tracking ID for Reconciliation
+                                    </p>
                                     <div className="flex items-center gap-2">
                                         <input
+                                            aria-label="Tracking ID"
                                             type="text"
                                             value={trackingId}
                                             readOnly
@@ -2481,7 +2490,6 @@ export default function ShipmentsPickup({ user }: { user: User }) {
                 }}
                 onGoToClosed={() => {
                     setSelectedShipment(null);
-                    setActiveTab("CLOSED");
                 }}
                 onUpdateShipmentStatus={handleUpdateShipmentStatus}
             />
@@ -2626,6 +2634,7 @@ export default function ShipmentsPickup({ user }: { user: User }) {
                             <div className="relative">
                                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                                 <input
+                                    aria-label="Search by tracking ID"
                                     type="text"
                                     placeholder="CX-88..."
                                     value={filters.orderId}

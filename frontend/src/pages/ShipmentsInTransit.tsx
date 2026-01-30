@@ -904,7 +904,7 @@ const InDestWarehouseDetail: React.FC<InDestWarehouseDetailProps> = ({
                                 onChange={(e) => setDocsCollected(e.target.checked)}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">Thu đủ chứng từ, hàng hóa</span>
+                            <span className="text-sm font-semibold text-slate-700">Collected all required documents and goods</span>
                         </label>
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -913,7 +913,7 @@ const InDestWarehouseDetail: React.FC<InDestWarehouseDetailProps> = ({
                                 onChange={(e) => setReceivedAllPackages(e.target.checked)}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">Nhận đủ kiện hàng</span>
+                            <span className="text-sm font-semibold text-slate-700">Received all packages</span>
                         </label>
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -931,7 +931,7 @@ const InDestWarehouseDetail: React.FC<InDestWarehouseDetailProps> = ({
                                 onChange={(e) => setRouteLabelCorrect(e.target.checked)}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">Tem nhãn đúng tuyến/kho</span>
+                            <span className="text-sm font-semibold text-slate-700">Route/warehouse label is correct</span>
                         </label>
 
                         <div className="flex flex-wrap justify-end gap-3 pt-2">
@@ -1184,7 +1184,7 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
 
             <div className="space-y-4">
                 <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
-                    <h2 className="text-sm font-bold text-slate-900 mb-3">Kết quả giao hàng</h2>
+                                        <h2 className="text-sm font-bold text-slate-900 mb-3">Delivery Result</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <label
@@ -1198,7 +1198,7 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
                                 onChange={() => setDeliveryResult("SUCCESS")}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">Giao hàng thành công</span>
+                                                                <span className="text-sm font-semibold text-slate-700">Delivery successful</span>
                         </label>
                         <label
                             className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-colors ${deliveryResult === "FAIL" ? "border-rose-300 bg-rose-50" : "border-slate-200 hover:bg-slate-50"}`}
@@ -1211,18 +1211,18 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
                                 onChange={() => setDeliveryResult("FAIL")}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">Giao hàng thất bại</span>
+                                                                <span className="text-sm font-semibold text-slate-700">Delivery failed</span>
                         </label>
                     </div>
 
                     {deliveryResult === "SUCCESS" && (
                         <div className="mt-5 space-y-4">
-                            <h3 className="text-sm font-bold text-slate-900">Giao hàng thành công</h3>
+                                                        <h3 className="text-sm font-bold text-slate-900">Delivery successful</h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-[11px] font-semibold text-slate-400 mb-2">
-                                        Ảnh đơn hàng đã giao kèm chữ ký
+                                        Photo of delivered order with signature
                                     </p>
                                     <div className="flex items-start gap-3">
                                         <div className="w-32 h-24 rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
@@ -1261,7 +1261,7 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
 
                                 <div>
                                     <p className="text-[11px] font-semibold text-slate-400 mb-2">
-                                        Ảnh địa chỉ giao hàng
+                                        Photo of delivery address
                                     </p>
                                     <div className="flex items-start gap-3">
                                         <div className="w-32 h-24 rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
@@ -1307,7 +1307,7 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
                                     className="w-4 h-4"
                                 />
                                 <span className="text-sm font-semibold text-slate-700">
-                                    Đã đối chiếu tên và SĐT trùng khớp
+                                    Name and phone number matched
                                 </span>
                             </label>
                         </div>
@@ -1315,7 +1315,7 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
 
                     {deliveryResult === "FAIL" && (
                         <div className="mt-5 space-y-4">
-                            <h3 className="text-sm font-bold text-slate-900">Giao hàng thất bại</h3>
+                                                        <h3 className="text-sm font-bold text-slate-900">Delivery failed</h3>
 
                             <div className="space-y-3">
                                 <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
@@ -1325,7 +1325,7 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
                                         onChange={(e) => setFailNoContact(e.target.checked)}
                                         className="w-4 h-4"
                                     />
-                                    <span className="text-sm font-semibold text-slate-700">Không liên lạc được</span>
+                                                                        <span className="text-sm font-semibold text-slate-700">Could not contact</span>
                                 </label>
                                 <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                                     <input
@@ -1334,7 +1334,7 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
                                         onChange={(e) => setFailWrongAddress(e.target.checked)}
                                         className="w-4 h-4"
                                     />
-                                    <span className="text-sm font-semibold text-slate-700">Sai địa chỉ</span>
+                                                                        <span className="text-sm font-semibold text-slate-700">Wrong address</span>
                                 </label>
                                 <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                                     <input
@@ -1343,7 +1343,7 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
                                         onChange={(e) => setFailCustomerRefuse(e.target.checked)}
                                         className="w-4 h-4"
                                     />
-                                    <span className="text-sm font-semibold text-slate-700">Khách từ chối nhận</span>
+                                                                        <span className="text-sm font-semibold text-slate-700">Customer refused delivery</span>
                                 </label>
                                 <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                                     <input
@@ -1352,7 +1352,7 @@ const OutForDeliveryDetail: React.FC<OutForDeliveryDetailProps> = ({
                                         onChange={(e) => setFailDamaged(e.target.checked)}
                                         className="w-4 h-4"
                                     />
-                                    <span className="text-sm font-semibold text-slate-700">Hàng hư hỏng/rách seal</span>
+                                                                        <span className="text-sm font-semibold text-slate-700">Goods damaged / seal torn</span>
                                 </label>
                             </div>
                         </div>

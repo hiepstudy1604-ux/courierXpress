@@ -219,7 +219,7 @@ const AgentCreate: React.FC<Props> = ({ setView }) => {
                                 </div>
                                 <div className="mb-4">
                                     <span className="text-[10px] font-bold text-slate-500 block mb-1">
-                                        Email (đăng nhập)
+                                        Email (login)
                                     </span>
                                     <p className="text-xl font-black text-slate-900 font-mono break-all">
                                         {createdData.login?.email ?? formData.login.login_id}
@@ -243,7 +243,7 @@ const AgentCreate: React.FC<Props> = ({ setView }) => {
                                 </div>
                                 <div className="mb-4">
                                     <span className="text-[10px] font-bold text-slate-500 block mb-1">
-                                        Email (đăng nhập)
+                                        Email (login)
                                     </span>
                                     <p className="text-xl font-black text-slate-900 font-mono break-all">
                                         {formData.login.login_id}

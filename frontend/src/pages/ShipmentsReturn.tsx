@@ -754,7 +754,7 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
 
             <div className="space-y-4">
                 <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
-                    <h2 className="text-sm font-bold text-slate-900 mb-3">Xuất kho (Dispatch)</h2>
+                    <h2 className="text-sm font-bold text-slate-900 mb-3">Dispatch (Outbound)</h2>
                     <div className="space-y-3">
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -764,7 +764,7 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
                                 className="w-4 h-4"
                             />
                             <span className="text-sm font-semibold text-slate-700">
-                                đã nhận bàn giao hàng từ kho đích
+                                Received handover from destination warehouse
                             </span>
                         </label>
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
@@ -774,7 +774,7 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
                                 onChange={(e) => setDispatchEnoughQty(e.target.checked)}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">đủ số lượng hàng hóa</span>
+                            <span className="text-sm font-semibold text-slate-700">Sufficient quantity of goods</span>
                         </label>
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -784,14 +784,14 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
                                 className="w-4 h-4"
                             />
                             <span className="text-sm font-semibold text-slate-700">
-                                đã ký biên bản bàn giao hàng hóa và chứng từ
+                                Signed handover records and documents
                             </span>
                         </label>
                     </div>
                 </div>
 
                 <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
-                    <h2 className="text-sm font-bold text-slate-900 mb-3">Theo dõi hành trình</h2>
+                    <h2 className="text-sm font-bold text-slate-900 mb-3">Journey tracking</h2>
                     <div className="space-y-3">
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -800,7 +800,7 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
                                 onChange={(e) => setTrackingChangeVehicle(e.target.checked)}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">đổi xe</span>
+                            <span className="text-sm font-semibold text-slate-700">Vehicle change</span>
                         </label>
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -809,7 +809,7 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
                                 onChange={(e) => setTrackingDelayAccident(e.target.checked)}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">trễ chuyến, tai nạn</span>
+                            <span className="text-sm font-semibold text-slate-700">Trip delay / accident</span>
                         </label>
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -819,14 +819,14 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
                                 className="w-4 h-4"
                             />
                             <span className="text-sm font-semibold text-slate-700">
-                                hàng hóa rách seal, hư hỏng dọc đường
+                                Seal torn / goods damaged in transit
                             </span>
                         </label>
                     </div>
                 </div>
 
                 <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
-                    <h2 className="text-sm font-bold text-slate-900 mb-3">Nhập kho (Arrive)</h2>
+                    <h2 className="text-sm font-bold text-slate-900 mb-3">Arrival (Inbound)</h2>
                     <div className="space-y-3">
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -835,7 +835,7 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
                                 onChange={(e) => setArriveHandedOver(e.target.checked)}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">đã bàn giao hàng cho kho nguồn</span>
+                                                        <span className="text-sm font-semibold text-slate-700">Handed over goods to origin warehouse</span>
                         </label>
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -844,7 +844,7 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
                                 onChange={(e) => setArriveEnoughQty(e.target.checked)}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm font-semibold text-slate-700">đủ số lượng hàng hóa</span>
+                                                        <span className="text-sm font-semibold text-slate-700">Sufficient quantity of goods</span>
                         </label>
                         <label className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                             <input
@@ -854,7 +854,7 @@ const InTransitReturnDetail: React.FC<InTransitReturnDetailProps> = ({
                                 className="w-4 h-4"
                             />
                             <span className="text-sm font-semibold text-slate-700">
-                                đã ký biên bản bàn giao hàng hóa và chứng từ
+                                Signed handover records and documents
                             </span>
                         </label>
                     </div>

@@ -20,7 +20,6 @@ import {
     Edit2,
     Save,
     Loader2,
-    Trash2,
 } from "lucide-react";
 import { BranchService } from "../services/api";
 import api from "../services/api";
@@ -219,7 +218,6 @@ const AgentList: React.FC = () => {
         }
     };
 
-
     const handleSaveEdit = async () => {
         if (!editAgent) return;
         setIsSaving(true);
@@ -313,6 +311,7 @@ const AgentList: React.FC = () => {
                                     className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none"
                                 />
                                 <select
+                                    aria-label="Filter by city"
                                     value={filter.city}
                                     onChange={(e) => setFilter({ ...filter, city: e.target.value })}
                                     className="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none appearance-none font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-orange-500/10 transition-all cursor-pointer"
@@ -334,6 +333,7 @@ const AgentList: React.FC = () => {
                             <label className="text-sm font-bold text-slate-700 ml-1">Account Status</label>
                             <div className="relative">
                                 <select
+                                    aria-label="Filter by account status"
                                     value={filter.status}
                                     onChange={(e) => setFilter({ ...filter, status: e.target.value })}
                                     className="w-full pl-5 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none appearance-none font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-orange-500/10 transition-all cursor-pointer"
@@ -519,6 +519,7 @@ const AgentList: React.FC = () => {
                                         Operational Status
                                     </span>
                                     <button
+                                        aria-label="Toggle agent operational status"
                                         onClick={() => toggleAgentStatus(agent.id)}
                                         className={`relative inline-flex h-6 w-11 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                                             agent.status === "ACTIVE" ? "bg-[#f97316]" : "bg-slate-300"
@@ -562,6 +563,7 @@ const AgentList: React.FC = () => {
                                 </div>
                             </div>
                             <button
+                                aria-label="Close branch details modal"
                                 onClick={() => {
                                     setSelectedAgent(null);
                                     setShowPassword(false);
@@ -713,6 +715,7 @@ const AgentList: React.FC = () => {
                                                         ) : (
                                                             <input
                                                                 type="password"
+                                                                aria-label="Password display"
                                                                 readOnly
                                                                 value={loginInfo?.password || ""}
                                                                 className="font-black text-indigo-600 font-mono text-xs tracking-widest bg-transparent outline-none w-full"
@@ -720,6 +723,7 @@ const AgentList: React.FC = () => {
                                                         )}
                                                         <div className="flex items-center gap-1 shrink-0">
                                                             <button
+                                                                aria-label="Toggle password visibility"
                                                                 onClick={() => setShowPassword(!showPassword)}
                                                                 className="p-1 text-slate-300 hover:text-indigo-600 transition-colors"
                                                             >
@@ -730,6 +734,7 @@ const AgentList: React.FC = () => {
                                                                 )}
                                                             </button>
                                                             <button
+                                                                aria-label="Copy password to clipboard"
                                                                 onClick={() =>
                                                                     handleCopy(loginInfo?.password || "", "pwd")
                                                                 }
@@ -818,6 +823,7 @@ const AgentList: React.FC = () => {
                                 </div>
                             </div>
                             <button
+                                aria-label="Close edit branch modal"
                                 onClick={() => setEditAgent(null)}
                                 className="p-3 text-slate-400 hover:bg-slate-50 rounded-2xl transition-all"
                             >
@@ -831,6 +837,7 @@ const AgentList: React.FC = () => {
                                 <label className="text-xs font-bold text-slate-500 ml-1">Branch Name</label>
                                 <input
                                     type="text"
+                                    aria-label="Branch name"
                                     value={editAgent.name}
                                     onChange={(e) => setEditAgent({ ...editAgent, name: e.target.value })}
                                     className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 outline-none transition-all font-black text-slate-700"
@@ -843,6 +850,7 @@ const AgentList: React.FC = () => {
                                     <label className="text-xs font-bold text-slate-500 ml-1">Manager</label>
                                     <input
                                         type="text"
+                                        aria-label="Branch manager name"
                                         value={editAgent.branch_manager}
                                         onChange={(e) => setEditAgent({ ...editAgent, branch_manager: e.target.value })}
                                         className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 outline-none transition-all font-black text-slate-700"
@@ -872,6 +880,7 @@ const AgentList: React.FC = () => {
                                     <label className="text-xs font-bold text-slate-500 ml-1">Phone</label>
                                     <input
                                         type="text"
+                                        aria-label="Phone number"
                                         value={editAgent.phone}
                                         onChange={(e) => setEditAgent({ ...editAgent, phone: e.target.value })}
                                         className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 outline-none transition-all font-black text-slate-700"
@@ -884,6 +893,7 @@ const AgentList: React.FC = () => {
                                 <label className="text-xs font-bold text-slate-500 ml-1">Administrative Area</label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <select
+                                        aria-label="City"
                                         value={editAgent.city}
                                         onChange={(e) => setEditAgent({ ...editAgent, city: e.target.value })}
                                         className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 outline-none transition-all font-black text-slate-700 appearance-none"
@@ -895,6 +905,7 @@ const AgentList: React.FC = () => {
                                     </select>
                                     <input
                                         type="text"
+                                        aria-label="District"
                                         placeholder="District"
                                         value={editAgent.district}
                                         onChange={(e) => setEditAgent({ ...editAgent, district: e.target.value })}
@@ -907,6 +918,7 @@ const AgentList: React.FC = () => {
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 ml-1">Branch Address</label>
                                 <textarea
+                                    aria-label="Branch address"
                                     value={editAgent.address}
                                     onChange={(e) => setEditAgent({ ...editAgent, address: e.target.value })}
                                     rows={2}
@@ -932,6 +944,7 @@ const AgentList: React.FC = () => {
                                             <input
                                                 type="number"
                                                 min="0"
+                                                aria-label={`${label} capacity`}
                                                 value={editAgent.vehicles[key]}
                                                 onChange={(e) =>
                                                     setEditAgent({

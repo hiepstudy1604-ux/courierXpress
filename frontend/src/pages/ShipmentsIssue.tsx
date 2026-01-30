@@ -134,7 +134,7 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ shipment, branches, onBack, o
                 >
                     ← Back to list
                 </button>
-                <span className="text-xs font-semibold text-slate-400">Issue detail</span>
+                <span className="text-xs font-semibold text-slate-400">Issue details</span>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

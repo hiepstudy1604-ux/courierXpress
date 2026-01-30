@@ -122,9 +122,9 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
 
     const getPortalMismatchMessage = (role: UserRole) => {
         if (isStaffPortal) {
-            return `Tài khoản ${role} không thể đăng nhập ở cổng Nội bộ. Vui lòng đăng nhập ở cổng Customer.`;
+            return `Account ${role} cannot log in to the internal portal. Please log in via the Customer portal.`;
         }
-        return `Tài khoản ${role} không thể đăng nhập ở cổng Customer. Vui lòng dùng đăng nhập Nội bộ (Admin/Agent).`;
+        return `Account ${role} cannot log in to the Customer portal. Please use the internal login (Admin/Agent).`;
     };
 
     const handleAuth = async (e: React.FormEvent) => {
@@ -134,13 +134,13 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
         try {
             if (isSignUp) {
                 if (!passwordRules.isAsciiPrintableNoSpace) {
-                    alert("Mật khẩu không được có dấu cách hoặc ký tự có dấu (chỉ dùng ký tự ASCII).");
+                    alert("Password must not contain spaces or non-ASCII characters (ASCII only).");
                     setIsLoading(false);
                     return;
                 }
                 if (!passwordRules.isValid) {
                     alert(
-                        "Mật khẩu chưa đạt yêu cầu: tối thiểu 8 ký tự, có chữ hoa, chữ thường, số, ký tự đặc biệt; không có dấu cách và không có ký tự có dấu.",
+                        "Password does not meet requirements: at least 8 characters, includes uppercase, lowercase, number, special character; no spaces and no non-ASCII characters.",
                     );
                     setIsLoading(false);
                     return;
@@ -303,6 +303,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                         {otp.map((digit, i) => (
                             <input
                                 key={i}
+                                aria-label={`OTP digit ${i + 1}`}
                                 // Fix: ref callback must return void to avoid TS error
                                 ref={(el) => {
                                     otpInputs.current[i] = el;
@@ -427,7 +428,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
                                         className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 shadow-sm transition-all font-medium text-sm text-slate-900"
-                                        placeholder="Nguyễn Hoàng Hiệp"
+                                        placeholder="John Doe"
                                         required
                                     />
                                 </div>
@@ -497,6 +498,14 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                                         <div
                                             className={`h-full transition-all ${
+                                                password.length === 0
+                                                    ? "w-0"
+                                                    : passwordStrength === "WEAK"
+                                                      ? "w-1/3"
+                                                      : passwordStrength === "MEDIUM"
+                                                        ? "w-2/3"
+                                                        : "w-full"
+                                            } ${
                                                 passwordStrength === "STRONG"
                                                     ? "bg-emerald-500"
                                                     : passwordStrength === "MEDIUM"
@@ -505,16 +514,6 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                                         ? "bg-rose-500"
                                                         : "bg-slate-200"
                                             }`}
-                                            style={{
-                                                width:
-                                                    password.length === 0
-                                                        ? "0%"
-                                                        : passwordStrength === "WEAK"
-                                                          ? "33%"
-                                                          : passwordStrength === "MEDIUM"
-                                                            ? "66%"
-                                                            : "100%",
-                                            }}
                                         />
                                     </div>
 
@@ -522,23 +521,23 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                         <div
                                             className={passwordRules.minLength ? "text-emerald-600" : "text-slate-400"}
                                         >
-                                            • Tối thiểu 8 ký tự
+                                            • At least 8 characters
                                         </div>
                                         <div className={passwordRules.hasUpper ? "text-emerald-600" : "text-slate-400"}>
-                                            • Có chữ in hoa (A-Z)
+                                            • Includes uppercase (A-Z)
                                         </div>
                                         <div className={passwordRules.hasLower ? "text-emerald-600" : "text-slate-400"}>
-                                            • Có chữ thường (a-z)
+                                            • Includes lowercase (a-z)
                                         </div>
                                         <div
                                             className={passwordRules.hasNumber ? "text-emerald-600" : "text-slate-400"}
                                         >
-                                            • Có số (0-9)
+                                            • Includes numbers (0-9)
                                         </div>
                                         <div
                                             className={passwordRules.hasSpecial ? "text-emerald-600" : "text-slate-400"}
                                         >
-                                            • Có ký tự đặc biệt (vd: !@#)
+                                            • Includes special characters (e.g., !@#)
                                         </div>
                                         <div
                                             className={
@@ -547,7 +546,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                                     : "text-rose-600"
                                             }
                                         >
-                                            • Không có dấu cách & không có ký tự có dấu
+                                            • No spaces & no non-ASCII characters
                                         </div>
                                     </div>
                                 </div>
@@ -584,7 +583,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                     <p
                                         className={`text-xs font-bold ${confirmPassword === password ? "text-emerald-600" : "text-rose-600"}`}
                                     >
-                                        {confirmPassword === password ? "Mật khẩu khớp" : "Mật khẩu không khớp"}
+                                        {confirmPassword === password ? "Passwords match" : "Passwords do not match"}
                                     </p>
                                 )}
                             </div>
@@ -654,6 +653,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-black text-slate-900">Forgot password</h2>
                             <button
+                                aria-label="Close forgot password dialog"
                                 onClick={() => {
                                     setShowForgotPassword(false);
                                     setForgotPasswordEmail("");
@@ -735,7 +735,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                 disabled={isLoading || !forgotPasswordEmail}
                                 className="flex-1 py-3.5 bg-[#f97316] text-white rounded-2xl font-black text-sm hover:bg-[#ea580c] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                             >
-                                {isLoading ? <Loader2 className="animate-spin" size={18} /> : "Gửi link"}
+                                {isLoading ? <Loader2 className="animate-spin" size={18} /> : "Send link"}
                             </button>
                         </div>
                     </div>
