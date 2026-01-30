@@ -1,29 +1,20 @@
 
 import React from 'react';
-import { 
-  Truck, 
-  Search, 
-  ArrowRight, 
-  CheckCircle2,
+import {
+  ArrowRight,
   Bike,
-  Zap,
-  Box,
-  Globe,
-  MapPin,
-  Clock,
-  Layers,
-  ShoppingBag,
+  CheckCircle,
   Coffee,
-  Monitor,
   Gem,
-  Home,
   HardHat,
+  Home,
+  Layers,
+  Monitor,
   Package,
   ShieldCheck,
-  TrendingUp,
-  ChevronRight,
-  Phone,
-  CheckCircle
+  ShoppingBag,
+  Truck,
+  Zap,
 } from 'lucide-react';
 
 interface Props {
@@ -32,7 +23,7 @@ interface Props {
   onTrack: () => void;
 }
 
-const LandingPage: React.FC<Props> = ({ onStart, onSignUp, onTrack }) => {
+const LandingPage: React.FC<Props> = ({ onStart, onSignUp }) => {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
       {/* Header */}
@@ -42,18 +33,20 @@ const LandingPage: React.FC<Props> = ({ onStart, onSignUp, onTrack }) => {
             <PackageIcon size={24} />
           </div>
           <span className="text-2xl font-black text-slate-900 tracking-tighter">
-            Courier<span className="text-[#f97316]">Xpress</span>
+            Courier<span className="text-[#f97316]">XPress</span>
           </span>
         </div>
         
         <div className="flex items-center gap-4">
           <button 
+            type="button"
             onClick={onStart} 
             className="text-slate-600 px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest hover:text-[#f97316] transition-all"
           >
             Login
           </button>
           <button 
+            type="button"
             onClick={onSignUp} 
             className="bg-[#f97316] text-white px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-[#ea580c] transition-all shadow-lg shadow-orange-200 active:scale-95"
           >
@@ -106,10 +99,11 @@ const LandingPage: React.FC<Props> = ({ onStart, onSignUp, onTrack }) => {
             </h1>
             <p className="text-lg lg:text-xl text-white/95 font-medium leading-relaxed max-w-2xl mx-auto drop-shadow-lg">
               We specialize in providing sophisticated multi-modal shipping solutions. 
-              Every shipment, no matter how unique, is handled with professional precision by CourierXpress.
+              Every shipment, no matter how unique, is handled with professional precision by CourierXPress.
             </p>
             <div className="flex flex-col sm:flex-row gap-5 justify-center items-center pt-1">
               <button 
+                type="button"
                 onClick={onStart}
                 className="w-full sm:w-auto bg-white text-[#f97316] px-10 py-4 lg:px-12 lg:py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-2xl active:scale-95 group"
               >
@@ -242,7 +236,7 @@ const LandingPage: React.FC<Props> = ({ onStart, onSignUp, onTrack }) => {
                     <div className="w-16 h-16 bg-[#f97316] rounded-3xl flex items-center justify-center shadow-2xl"><ShieldCheck size={32} /></div>
                     <h5 className="font-black text-2xl">100% Insurance</h5>
                   </div>
-                  <p className="text-base font-medium opacity-90 leading-relaxed">CourierXpress takes full responsibility for the safety of your items throughout the journey.</p>
+                  <p className="text-base font-medium opacity-90 leading-relaxed">CourierXPress takes full responsibility for the safety of your items throughout the journey.</p>
                </div>
             </div>
           </div>
@@ -257,7 +251,7 @@ const LandingPage: React.FC<Props> = ({ onStart, onSignUp, onTrack }) => {
               <div className="w-12 h-12 bg-[#f97316] rounded-2xl flex items-center justify-center text-white shadow-2xl">
                 <PackageIcon size={26} />
               </div>
-              <span className="text-3xl font-black tracking-tighter">CourierXpress</span>
+              <span className="text-3xl font-black tracking-tighter">CourierXPress</span>
             </div>
             <p className="text-slate-400 text-base leading-relaxed font-medium">Shaping the future of Logistics through technology and dedication.</p>
           </div>
@@ -281,12 +275,12 @@ const LandingPage: React.FC<Props> = ({ onStart, onSignUp, onTrack }) => {
             <h4 className="text-xl font-black relative inline-block">Newsletter<div className="absolute -bottom-3 left-0 w-16 h-1.5 bg-[#f97316] rounded-full"></div></h4>
             <div className="relative">
               <input type="email" placeholder="Your email address" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 outline-none focus:border-[#f97316] transition-all text-sm font-medium" />
-              <button className="absolute right-2 top-2 bottom-2 bg-[#f97316] px-5 rounded-xl shadow-2xl hover:bg-[#ea580c] transition-all transform active:scale-95"><ArrowRight size={20} /></button>
+              <button type="button" title="Subscribe" className="absolute right-2 top-2 bottom-2 bg-[#f97316] px-5 rounded-xl shadow-2xl hover:bg-[#ea580c] transition-all transform active:scale-95"><ArrowRight size={20} /></button>
             </div>
           </div>
         </div>
         <div className="pt-12 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 text-center">
-          <p>© 2024 CourierXpress Logistics Management System. All Rights Reserved.</p>
+          <p>© 2024 CourierXPress Logistics Management System. All Rights Reserved.</p>
         </div>
       </footer>
       

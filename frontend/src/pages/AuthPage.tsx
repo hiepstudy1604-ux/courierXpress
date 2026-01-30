@@ -284,6 +284,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                 <div className="max-w-md w-full bg-white rounded-[40px] border border-slate-200 shadow-2xl p-10 lg:p-12 space-y-10">
                     {/* Back Button */}
                     <button
+                        type="button"
                         onClick={() => setShowOtp(false)}
                         className="flex items-center text-slate-400 font-bold hover:text-[#f97316] transition-all group text-sm"
                     >
@@ -321,10 +322,11 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                     <div className="text-center space-y-8">
                         <p className="text-sm font-bold text-slate-400">
                             Didn't receive the OTP?{" "}
-                            <button className="text-[#f97316] font-black hover:underline transition-all">Resend</button>
+                            <button type="button" className="text-[#f97316] font-black hover:underline transition-all">Resend</button>
                         </p>
 
                         <button
+                            type="button"
                             onClick={verifyOtp}
                             disabled={isLoading || otp.some((d) => !d)}
                             className="w-full py-4 bg-[#f97316] text-white rounded-2xl font-black text-base shadow-lg shadow-orange-100 hover:bg-[#ea580c] transition-all transform active:scale-[0.98] disabled:opacity-50 flex items-center justify-center tracking-widest uppercase"
@@ -351,7 +353,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                             {isStaffPortal
                                 ? "Operational Systems"
                                 : isSignUp
-                                  ? "Join CourierXpress"
+                                  ? "Join CourierXPress"
                                   : "Efficiency in Motion"}
                         </h2>
                         <p className="text-white/70 text-lg font-medium leading-relaxed max-w-sm mx-auto">
@@ -369,6 +371,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                 <div className="max-w-sm w-full mx-auto space-y-6">
                     <div className="mt-4 mb-2">
                         <button
+                            type="button"
                             onClick={onBack}
                             className="flex items-center text-slate-400 font-bold hover:text-[#f97316] transition-all group text-sm"
                         >
@@ -386,6 +389,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                 <>
                                     Already have an account?{" "}
                                     <button
+                                        type="button"
                                         onClick={() => {
                                             setIsSignUp(false);
                                             setIsStaffPortal(false);
@@ -399,6 +403,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                 <>
                                     Don't have an account?{" "}
                                     <button
+                                        type="button"
                                         onClick={() => {
                                             setIsSignUp(true);
                                             setIsStaffPortal(false);
@@ -430,6 +435,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                         className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 shadow-sm transition-all font-medium text-sm text-slate-900"
                                         placeholder="John Doe"
                                         required
+                                        autoComplete="name"
                                     />
                                 </div>
                             </div>
@@ -448,6 +454,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                     className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 shadow-sm transition-all font-medium text-sm text-slate-900"
                                     placeholder="hiepstudy1604@gmail.com"
                                     required
+                                    autoComplete="username"
                                 />
                             </div>
                         </div>
@@ -466,6 +473,8 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                     placeholder="••••••••"
                                     required
                                     autoComplete={isSignUp ? "new-password" : "current-password"}
+                                    name="password"
+
                                 />
                                 <button
                                     type="button"
@@ -570,6 +579,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                         className="w-full pl-11 pr-12 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 shadow-sm transition-all font-medium text-sm text-slate-900"
                                         placeholder="••••••••"
                                         required
+                                        autoComplete="new-password"
                                     />
                                     <button
                                         type="button"
@@ -638,7 +648,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                     className="w-full bg-white border-2 border-slate-100 text-slate-500 py-3.5 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-sm hover:bg-slate-50 hover:border-[#f97316]/30 hover:text-[#f97316] transition-all transform active:scale-[0.98]"
                                 >
                                     <ShieldCheck size={18} />
-                                    Internal CourierXpress Login
+                                    Internal CourierXPress Login
                                 </button>
                             )}
                         </div>
@@ -653,6 +663,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-black text-slate-900">Forgot password</h2>
                             <button
+                                type="button"
                                 aria-label="Close forgot password dialog"
                                 onClick={() => {
                                     setShowForgotPassword(false);
@@ -689,13 +700,15 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                     value={forgotPasswordEmail}
                                     onChange={(e) => setForgotPasswordEmail(e.target.value)}
                                     className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 shadow-sm transition-all font-medium text-sm text-slate-900"
-                                    placeholder="hiepstudy1604@gmail.com"
+                                    placeholder="abc@gmail.com"
+                                    autoComplete="email"
                                 />
                             </div>
                         </div>
 
                         <div className="flex gap-3 pt-2">
                             <button
+                                type="button"
                                 onClick={() => {
                                     setShowForgotPassword(false);
                                     setForgotPasswordEmail("");
@@ -705,6 +718,7 @@ const AuthPage: React.FC<Props> = ({ onLogin, onBack, initialMode = "login" }) =
                                 Cancel
                             </button>
                             <button
+                                type="button"
                                 onClick={async () => {
                                     if (!forgotPasswordEmail) {
                                         alert("Please enter your email");

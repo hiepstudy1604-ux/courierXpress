@@ -1,24 +1,20 @@
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Download, 
-  FileText, 
-  Filter, 
-  Search, 
-  Calendar, 
-  Hash, 
-  RotateCcw,
+import React, { useEffect, useState } from 'react';
+import {
+  Calendar,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  User as UserIcon,
-  ChevronDown,
   Eye,
-  Pencil,
-  Phone as PhoneIcon
+  FileText,
+  Filter,
+  Hash,
+  RotateCcw,
+  Search,
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { BillingService } from '../services/api';
-import { Loader2, XCircle } from 'lucide-react';
+import { Loader2, User as UserIcon, XCircle } from 'lucide-react';
 
 interface Props {
   user: User;
@@ -119,6 +115,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
           
           {showFilters && (
             <button 
+              type="button"
               onClick={resetFilters}
               className="flex items-center gap-2 text-slate-400 hover:text-[#f97316] text-xs font-bold transition-all px-3 py-1.5 hover:bg-orange-50 rounded-lg group"
               title="Reset Filters"
@@ -165,6 +162,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                   type="date" 
                   value={filters.date}
                   onChange={(e) => setFilters({...filters, date: e.target.value})}
+                  title="Creation Date"
                   className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 transition-all font-semibold text-slate-900" 
                 />
               </div>
@@ -202,6 +200,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                       <XCircle size={32} className="text-rose-500" />
                       <p className="text-sm font-semibold text-slate-700">{error}</p>
                       <button
+                        type="button"
                         onClick={fetchBills}
                         className="px-4 py-2 bg-[#f97316] text-white rounded-lg font-bold text-sm hover:bg-[#ea580c] transition-all"
                       >
@@ -238,6 +237,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                   </td>
                   <td className="px-6 py-5 text-right flex gap-2 justify-end items-center">
                     <button
+                      type="button"
                       className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-all"
                       title="View details"
                       onClick={() => openDetailModal(tx)}
@@ -263,9 +263,11 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
           </p>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               className="p-2.5 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 transition-all shadow-sm bg-white text-slate-600"
+              title="Previous page"
             >
               <ChevronLeft size={16} />
             </button>
@@ -304,6 +306,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
 
                   return (
                     <button
+                      type="button"
                       key={p}
                       onClick={() => setCurrentPage(p)}
                       className={`w-9 h-9 rounded-xl text-xs font-black transition-all border ${
@@ -311,6 +314,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                           ? 'bg-slate-900 text-white shadow-lg border-slate-900'
                           : 'bg-white text-slate-400 border-slate-200 hover:text-slate-900 hover:border-slate-400'
                       }`}
+                      title={`Page ${p}`}
                     >
                       {p}
                     </button>
@@ -319,9 +323,11 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
               })()}
             </div>
             <button
+              type="button"
               disabled={safePage === totalPages || transactions.length === 0}
               onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
               className="p-2.5 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 transition-all shadow-sm bg-white text-slate-600"
+              title="Next page"
             >
               <ChevronRight size={16} />
             </button>
@@ -338,6 +344,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                 <FileText size={32} className="text-orange-400" /> Order details
               </h2>
               <button
+                type="button"
                 className="p-2 rounded-full hover:bg-orange-200 text-slate-400 hover:text-orange-600 transition-all"
                 onClick={closeDetailModal}
                 title="Close"

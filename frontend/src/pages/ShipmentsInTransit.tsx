@@ -12,7 +12,6 @@ import {
     Box,
     ClipboardCheck,
     ChevronDown,
-    Phone,
     Loader2,
     XCircle,
     Truck,

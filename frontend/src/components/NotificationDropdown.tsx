@@ -164,6 +164,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onNa
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => {
           setIsOpen(!isOpen);
           if (!isOpen) {
@@ -197,6 +198,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onNa
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <button
+                  type="button"
                   onClick={handleMarkAllAsRead}
                   className="p-1.5 hover:bg-slate-50 rounded-lg transition-colors"
                   title="Mark all as read"
@@ -205,8 +207,10 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onNa
                 </button>
               )}
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 hover:bg-slate-50 rounded-lg transition-colors"
+                title="Close"
               >
                 <X size={16} className="text-slate-400" />
               </button>
@@ -255,11 +259,13 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onNa
                           </h4>
                           {!notification.is_read && (
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleMarkAsRead(notification.id);
                               }}
                               className="p-1 hover:bg-slate-200 rounded transition-colors shrink-0"
+                              title="Mark as read"
                             >
                               <Check size={12} className="text-slate-400" />
                             </button>
@@ -283,6 +289,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onNa
           {notifications.length > 0 && (
             <div className="p-3 border-t border-slate-100">
               <button
+                type="button"
                 onClick={() => {
                   if (onNavigate) {
                     onNavigate('NOTIFICATIONS');

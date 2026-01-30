@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Customer } from "../types";
 import {
   Search,
@@ -104,7 +104,6 @@ interface ShipmentDetailType {
 const CustomerManagement: React.FC = () => {
   // --- UI & DATA MANAGEMENT STATE / TRẠNG THÁI UI & QUẢN LÝ DỮ LIỆU ---
 
-  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(true);
@@ -123,8 +122,6 @@ const CustomerManagement: React.FC = () => {
   // --- NEW: State for Shipment Details Modal ---
   const [selectedShipment, setSelectedShipment] =
     useState<ShipmentDetailType | null>(null);
-  const [isShipmentLoading, setIsShipmentLoading] = useState(false);
-  const [shipmentError, setShipmentError] = useState<string | null>(null);
 
   // Tracks which specific shipment ID is loading to show a spinner inline.
   // Theo dõi ID vận đơn cụ thể nào đang tải để hiển thị vòng quay (spinner) tại dòng đó.
@@ -315,7 +312,6 @@ const CustomerManagement: React.FC = () => {
     if (!selectedCustomer) return;
 
     setLoadingShipmentId(shipmentId);
-    setShipmentError(null);
 
     try {
       // Assuming ShipmentService is added to services/api.ts to call GET /api/shipments/{id}
@@ -338,14 +334,12 @@ const CustomerManagement: React.FC = () => {
         setSelectedShipment(shipmentData);
       } else {
         const errorMsg = "Failed to load shipment details.";
-        setShipmentError(errorMsg);
         alert(errorMsg);
       }
     } catch (err: any) {
       console.error("Error fetching shipment details:", err);
       const errorMsg =
         err.response?.data?.message || "Failed to load shipment details.";
-      setShipmentError(errorMsg);
       alert(errorMsg);
     } finally {
       setLoadingShipmentId(null);
@@ -456,6 +450,7 @@ const CustomerManagement: React.FC = () => {
 
           {showFilters && (
             <button
+              type="button"
               onClick={resetFilters}
               className="flex items-center gap-2 text-slate-400 hover:text-[#f97316] text-xs font-bold transition-all px-3 py-1.5 hover:bg-orange-50 rounded-lg group"
               title="Reset Filters"
@@ -611,6 +606,7 @@ const CustomerManagement: React.FC = () => {
                   onChange={(e) =>
                     setFilters({ ...filters, status: e.target.value })
                   }
+                  title="Status"
                   className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 transition-all font-semibold text-slate-900 appearance-none"
                 >
                   <option value="">All Status</option>
@@ -711,6 +707,7 @@ const CustomerManagement: React.FC = () => {
                         {error}
                       </p>
                       <button
+                        type="button"
                         onClick={() => fetchCustomers()}
                         className="px-4 py-2 bg-[#f97316] text-white rounded-lg font-bold text-sm hover:bg-[#ea580c] transition-all"
                       >
@@ -740,8 +737,10 @@ const CustomerManagement: React.FC = () => {
                           {c.id}
                         </span>
                         <button
+                          type="button"
                           onClick={() => handleCopy(c.id)}
                           className="p-1.5 text-slate-300 hover:text-orange-600 transition-all hover:bg-orange-50 rounded-lg opacity-0 group-hover:opacity-100"
+                          title="Copy customer ID"
                         >
                           {copiedId === c.id ? (
                             <ClipboardCheck
@@ -812,6 +811,7 @@ const CustomerManagement: React.FC = () => {
                       <div className="flex justify-end gap-1.5">
                         {/* Button Toggle Status / Nút Chuyển đổi trạng thái */}
                         <button
+                          type="button"
                           onClick={() => handleToggleStatus(c)}
                           disabled={statusLoadingId === c.id}
                           className={`p-2 transition-all rounded-xl border shadow-sm ${
@@ -835,6 +835,7 @@ const CustomerManagement: React.FC = () => {
                         </button>
 
                         <button
+                          type="button"
                           onClick={() => handleViewDetails(c.id)}
                           className="p-2 text-slate-400 hover:text-orange-600 transition-all hover:bg-orange-50 rounded-xl border border-transparent hover:border-orange-100 shadow-sm"
                           title="View Detail"
@@ -866,15 +867,18 @@ const CustomerManagement: React.FC = () => {
           </p>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               className="p-2.5 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 transition-all shadow-sm bg-white text-slate-600"
+              title="Previous page"
             >
               <ChevronLeft size={16} />
             </button>
             <div className="flex items-center gap-1.5">
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button
+                  type="button"
                   key={i}
                   onClick={() => setCurrentPage(i + 1)}
                   className={`w-9 h-9 rounded-xl text-xs font-black transition-all border ${
@@ -888,11 +892,13 @@ const CustomerManagement: React.FC = () => {
               ))}
             </div>
             <button
+              type="button"
               disabled={currentPage === totalPages || totalPages === 0}
               onClick={() =>
                 setCurrentPage((prev) => Math.min(totalPages, prev + 1))
               }
               className="p-2.5 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 transition-all shadow-sm bg-white text-slate-600"
+              title="Next page"
             >
               <ChevronRight size={16} />
             </button>
@@ -923,8 +929,10 @@ const CustomerManagement: React.FC = () => {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedCustomer(null)}
                 className="p-3 text-slate-400 hover:bg-slate-50 rounded-2xl transition-all"
+                title="Close"
               >
                 <X size={24} />
               </button>
@@ -1079,6 +1087,7 @@ const CustomerManagement: React.FC = () => {
 
             <div className="p-8 bg-slate-50 border-t border-slate-100 flex items-center justify-center sticky bottom-0 z-10">
               <button
+                type="button"
                 onClick={() => setSelectedCustomer(null)}
                 className="w-full max-w-xs py-3.5 bg-slate-900 text-white border border-slate-800 rounded-2xl font-black shadow-lg hover:bg-black transition-all active:scale-95"
               >
@@ -1113,8 +1122,10 @@ const CustomerManagement: React.FC = () => {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedShipment(null)}
                 className="p-3 text-slate-400 hover:bg-slate-50 rounded-2xl transition-all"
+                title="Close"
               >
                 <X size={24} />
               </button>
@@ -1301,6 +1312,7 @@ const CustomerManagement: React.FC = () => {
             {/* Footer */}
             <div className="p-8 bg-slate-50 border-t border-slate-100 flex items-center justify-center sticky bottom-0 z-10">
               <button
+                type="button"
                 onClick={() => setSelectedShipment(null)}
                 className="w-full max-w-xs py-3.5 bg-slate-900 text-white border border-slate-800 rounded-2xl font-black shadow-lg hover:bg-black transition-all active:scale-95"
               >
@@ -1366,12 +1378,14 @@ const CustomerManagement: React.FC = () => {
 
             <div className="flex items-center gap-3 w-full">
               <button
+                type="button"
                 onClick={() => setConfirmAction(null)}
                 className="flex-1 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black hover:bg-slate-50 transition-all"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={executeStatusChange}
                 className={`flex-1 py-3.5 text-white rounded-2xl font-black shadow-lg transition-all active:scale-95 ${
                   confirmAction.newStatus === "Blocked"
