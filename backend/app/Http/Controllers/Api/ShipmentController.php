@@ -288,6 +288,8 @@ class ShipmentController extends Controller
         $shipment = Shipment::with(['pickupSchedule', 'paymentIntent', 'goodsInspection', 'pickupAssignment'])->findOrFail($id);
 
         $roleMap = [
+            ShipmentStatus::BOOKED->value => ['ADMIN', 'CUSTOMER'],
+            ShipmentStatus::BRANCH_ASSIGNED->value => ['ADMIN'],
             ShipmentStatus::PICKUP_SCHEDULED->value => ['ADMIN', 'AGENT'],
             ShipmentStatus::PICKUP_RESCHEDULED->value => ['ADMIN', 'AGENT'],
             ShipmentStatus::ON_THE_WAY_PICKUP->value => ['ADMIN', 'AGENT'],
@@ -327,6 +329,12 @@ class ShipmentController extends Controller
         DB::beginTransaction();
         try {
             switch ($newStatus) {
+                case ShipmentStatus::BOOKED->value:
+                    // No extra side-effects for BOOKED status
+                    break;
+                case ShipmentStatus::BRANCH_ASSIGNED->value:
+                    $this->handleBranchAssigned($shipment, $payload);
+                    break;
                 case ShipmentStatus::PICKUP_SCHEDULED->value:
                     $this->handlePickupScheduled($shipment, $payload, $user->id);
                     break;
@@ -479,6 +487,23 @@ class ShipmentController extends Controller
                 'related_type' => 'shipment',
                 'related_id' => $shipment->shipment_id,
             ]);
+        }
+    }
+
+    private function handleBranchAssigned(Shipment $shipment, array $payload): void
+    {
+        /**
+         * Assign branch and vehicle to shipment.
+         * Payload should contain:
+         * - branch_id: ID of the branch to assign
+         * - vehicle_id: ID of the vehicle to assign (optional)
+         */
+        if (!empty($payload['branch_id'])) {
+            $shipment->assigned_branch_id = $payload['branch_id'];
+        }
+
+        if (!empty($payload['vehicle_id'])) {
+            $shipment->assigned_vehicle_id = $payload['vehicle_id'];
         }
     }
 
