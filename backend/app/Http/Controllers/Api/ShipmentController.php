@@ -41,7 +41,7 @@ class ShipmentController extends Controller
             ]);
 
             if ($user->role === 'CUSTOMER') {
-                // (optional) filter by user_id when shipments are properly linked
+                $query->where('customer_id', $user->id);
             } elseif ($user->role === 'AGENT') {
                 if ($user->branch_id) {
                     $query->where('assigned_branch_id', $user->branch_id);

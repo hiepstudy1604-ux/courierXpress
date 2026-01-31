@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { User, UserRole } from '../types';
 import { 
@@ -64,12 +63,10 @@ const DashboardLayout: React.FC<Props> = ({ user, onLogout, children, currentVie
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.CUSTOMER],
       children: [
         { id: 'create-shipment', view: 'SHIPMENT_CREATE', label: 'Create Shipment', icon: PackagePlus, roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.CUSTOMER] },
-
         { id: 'shipments-booked', view: 'SHIPMENTS_BOOKED', label: 'Booked', icon: Clock, roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.CUSTOMER] },
         { id: 'shipments-pickup', view: 'SHIPMENTS_PICKUP', label: 'Schedule pickup', icon: Package, roles: [UserRole.ADMIN, UserRole.AGENT] },
         { id: 'shipments-in-transit', view: 'SHIPMENTS_IN_TRANSIT', label: 'In transit', icon: Truck, roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.CUSTOMER] },
         { id: 'shipments-delivered', view: 'SHIPMENTS_DELIVERED', label: 'Delivered', icon: CheckCircle, roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.CUSTOMER] },
-
         { id: 'shipments-return', view: 'SHIPMENTS_RETURN', label: 'Return', icon: RotateCcw, roles: [UserRole.ADMIN, UserRole.AGENT] },
         { id: 'shipments-issue', view: 'SHIPMENTS_ISSUE', label: 'Issue', icon: AlertCircle, roles: [UserRole.ADMIN, UserRole.AGENT] }
       ]

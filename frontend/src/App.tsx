@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { UserRole } from "./types";
-import type { User } from "./types";
+import { useAuth } from "./context/AuthContext";
+
+// Layout & Pages
 import DashboardLayout from "./components/DashboardLayout";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
@@ -22,139 +24,133 @@ import ShipmentsDelivered from "./pages/ShipmentsDelivered";
 import ShipmentsReturn from "./pages/ShipmentsReturn";
 import ShipmentsIssue from "./pages/ShipmentsIssue";
 
+// Kiểu View tổng thể cho toàn bộ ứng dụng
 export type View =
-    | "LANDING"
-    | "AUTH"
-    | "DASHBOARD"
-    | "SHIPMENT_CREATE"
-    | "SHIPMENTS_BOOKED"
-    | "SHIPMENTS_PICKUP"
-    | "SHIPMENTS_IN_TRANSIT"
-    | "SHIPMENTS_DELIVERED"
-    | "SHIPMENTS_RETURN"
-    | "SHIPMENTS_ISSUE"
-    | "AGENT_CREATE"
-    | "AGENT_LIST"
-    | "BILLING"
-    | "CUSTOMERS"
-    | "REPORTS"
-    | "NOTIFICATIONS"
-    | "TRACKING"
-    | "PROFILE"
-    ;
+  | "LANDING" | "AUTH" | "DASHBOARD" | "SHIPMENT_CREATE" | "SHIPMENTS_BOOKED"
+  | "SHIPMENTS_PICKUP" | "SHIPMENTS_IN_TRANSIT" | "SHIPMENTS_DELIVERED"
+  | "SHIPMENTS_RETURN" | "SHIPMENTS_ISSUE" | "AGENT_CREATE" | "AGENT_LIST"
+  | "BILLING" | "CUSTOMERS" | "REPORTS" | "NOTIFICATIONS" | "TRACKING" | "PROFILE"
+  | "WALLET";
 
 const App: React.FC = () => {
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [currentView, setCurrentView] = useState<View>("LANDING");
-    const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const { user, loading, logout } = useAuth();
+  const [currentView, setCurrentView] = useState<View>("LANDING");
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 
-    const handleLogin = (user: User) => {
-        setCurrentUser(user);
-        if (user.role === UserRole.CUSTOMER) {
-            setCurrentView("SHIPMENTS_BOOKED");
-        } else {
-            setCurrentView("DASHBOARD");
-        }
-    };
+  // Xử lý chuyển view tập trung, dùng bất kỳ giá trị string nào để tránh lỗi mismatch type 2322
+  const handleSetView = useCallback((view: View | string) => {
+    setCurrentView(view as View);
+  }, []);
 
-    const handleLogout = async () => {
-        try {
-            const token = localStorage.getItem('cx_token');
-            if (token) {
-                // Call logout API if token exists
-                const { AuthService } = await import('./services/api');
-                await AuthService.logout();
-            }
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            // Clear token and user state
-            localStorage.removeItem('cx_token');
-        setCurrentUser(null);
-        setCurrentView("LANDING");
-        }
-    };
+  // Điều hướng sau khi Login
+  const handleAuthSuccess = useCallback(() => {
+    if (user?.role === UserRole.CUSTOMER) {
+      setCurrentView("SHIPMENTS_BOOKED");
+    } else {
+      setCurrentView("DASHBOARD");
+    }
+  }, [user]);
 
-    const navigateToAuth = (mode: "login" | "signup") => {
-        setAuthMode(mode);
-        setCurrentView("AUTH");
-    };
+  const handleLogout = useCallback(async () => {
+    await logout();
+    setCurrentView("LANDING");
+  }, [logout]);
 
-    const renderContent = () => {
-        if (currentView === "LANDING") {
-            return (
-                <LandingPage
-                    onStart={() => navigateToAuth("login")}
-                    onSignUp={() => navigateToAuth("signup")}
-                    onTrack={() => setCurrentView("TRACKING")}
-                />
-            );
-        }
+  const navigateToAuth = (mode: "login" | "signup") => {
+    setAuthMode(mode);
+    setCurrentView("AUTH");
+  };
 
-        if (!currentUser && currentView === "TRACKING") {
-            return (
-                <div className="min-h-screen bg-slate-50">
-                    <button
-                        type="button"
-                        onClick={() => setCurrentView("LANDING")}
-                        className="m-4 px-4 py-2 text-orange-600 font-semibold hover:bg-orange-50 rounded-lg transition-colors"
-                    >
-                        ← Back to Home
-                    </button>
-                    <TrackingPage />
-                </div>
-            );
-        }
+  /**
+   * Derived State: Xác định view thực tế dựa trên Auth State.
+   * Kỹ thuật này giúp tránh re-render lặp (Cascading updates) và lỗi ESLint.
+   */
+  const activeView = useMemo(() => {
+    if (user && (currentView === "LANDING" || currentView === "AUTH")) {
+      return user.role === UserRole.CUSTOMER ? "SHIPMENTS_BOOKED" : "DASHBOARD";
+    }
+    return currentView;
+  }, [user, currentView]);
 
-        if (!currentUser && currentView === "AUTH") {
-            return <AuthPage initialMode={authMode} onLogin={handleLogin} onBack={() => setCurrentView("LANDING")} />;
-        }
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-orange-100 border-t-orange-600 rounded-full animate-spin" />
+          <span className="text-slate-500 font-medium">Initializing...</span>
+        </div>
+      </div>
+    );
+  }
 
-        if (currentUser) {
-            return (
-                <DashboardLayout
-                    user={currentUser}
-                    onLogout={handleLogout}
-                    currentView={currentView}
-                    setView={setCurrentView}
-                >
-                    {currentView === "DASHBOARD" && currentUser.role === UserRole.ADMIN && <AdminDashboard />}
-                    {currentView === "DASHBOARD" && currentUser.role === UserRole.AGENT && (
-                        <AgentDashboard user={currentUser} />
-                    )}
+  // --- RENDERING STRATEGY ---
 
-                    {currentView === "SHIPMENTS_BOOKED" && <ShipmentsBooked user={currentUser} setView={setCurrentView} />}
-                    {currentView === "SHIPMENTS_PICKUP" && <ShipmentsPickup user={currentUser} />}
-                    {currentView === "SHIPMENTS_IN_TRANSIT" && <ShipmentsInTransit user={currentUser} setView={setCurrentView} />}
-                    {currentView === "SHIPMENTS_DELIVERED" && <ShipmentsDelivered user={currentUser} setView={setCurrentView} />}
-                    {currentView === "SHIPMENTS_RETURN" && <ShipmentsReturn user={currentUser} setView={setCurrentView} />}
-                    {currentView === "SHIPMENTS_ISSUE" && <ShipmentsIssue user={currentUser} setView={setCurrentView} />}
-                    {currentView === "SHIPMENT_CREATE" && <CreateShipment user={currentUser} setView={setCurrentView} />}
+  // 1. Giao diện cho Guest
+  if (!user) {
+    if (activeView === "TRACKING") {
+      return (
+        <div className="min-h-screen bg-slate-50">
+          <button 
+            onClick={() => setCurrentView("LANDING")}
+            className="m-4 text-orange-600 font-bold hover:underline"
+          >
+            ← Back
+          </button>
+          <TrackingPage />
+        </div>
+      );
+    }
 
-                    {currentView === "AGENT_LIST" && <AgentList key={currentView} />}
-                    {currentView === "AGENT_CREATE" && <AgentCreate setView={setCurrentView} />}
+    if (activeView === "AUTH") {
+      return (
+        <AuthPage 
+          initialMode={authMode} 
+          onLogin={handleAuthSuccess} 
+          onBack={() => setCurrentView("LANDING")} 
+        />
+      );
+    }
 
-                    {currentView === "BILLING" && <BillingManagement user={currentUser} />}
-                    {currentView === "CUSTOMERS" && <CustomerManagement />}
-                    {currentView === "REPORTS" && <ReportsPage user={currentUser} />}
-                    {currentView === "TRACKING" && <TrackingPage />}
-                    {currentView === "NOTIFICATIONS" && <NotificationsPage />}
+    return (
+      <LandingPage
+        onStart={() => navigateToAuth("login")}
+        onSignUp={() => navigateToAuth("signup")}
+        onTrack={() => setCurrentView("TRACKING")}
+      />
+    );
+  }
 
-                    {currentView === "PROFILE" && <ProfilePage user={currentUser} />}
-                </DashboardLayout>
-            );
-        }
+  // 2. Giao diện sau đăng nhập
+  return (
+    <DashboardLayout
+      user={user}
+      onLogout={handleLogout}
+      currentView={activeView}
+      setView={handleSetView}
+    >
+      {/* Dynamic View Injection */}
+      {activeView === "DASHBOARD" && (
+        user.role === UserRole.ADMIN ? <AdminDashboard /> : <AgentDashboard user={user} />
+      )}
+      
+      {activeView === "SHIPMENTS_BOOKED" && <ShipmentsBooked user={user} setView={handleSetView} />}
+      {activeView === "SHIPMENTS_PICKUP" && <ShipmentsPickup user={user} />}
+      {activeView === "SHIPMENTS_IN_TRANSIT" && <ShipmentsInTransit user={user} setView={handleSetView} />}
+      {activeView === "SHIPMENTS_DELIVERED" && <ShipmentsDelivered user={user} setView={handleSetView} />}
+      {activeView === "SHIPMENTS_RETURN" && <ShipmentsReturn user={user} setView={handleSetView} />}
+      {activeView === "SHIPMENTS_ISSUE" && <ShipmentsIssue user={user} setView={handleSetView} />}
+      {activeView === "SHIPMENT_CREATE" && <CreateShipment user={user} setView={handleSetView} />}
 
-        return (
-            <LandingPage
-                onStart={() => navigateToAuth("login")}
-                onSignUp={() => navigateToAuth("signup")}
-                onTrack={() => setCurrentView("TRACKING")}
-            />
-        );
-    };
-
-    return <div className="min-h-screen">{renderContent()}</div>;
+      {activeView === "AGENT_LIST" && <AgentList key={activeView} />}
+      {activeView === "AGENT_CREATE" && <AgentCreate setView={handleSetView} />}
+      {activeView === "BILLING" && <BillingManagement user={user} />}
+      {activeView === "CUSTOMERS" && <CustomerManagement />}
+      {activeView === "REPORTS" && <ReportsPage user={user} />}
+      {activeView === "TRACKING" && <TrackingPage />}
+      {activeView === "NOTIFICATIONS" && <NotificationsPage />}
+      {activeView === "PROFILE" && <ProfilePage user={user} />}
+    </DashboardLayout>
+  );
 };
 
 export default App;

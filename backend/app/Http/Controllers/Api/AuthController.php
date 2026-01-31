@@ -4,249 +4,270 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Mail\CourierXpressMail;
+use App\Mail\WelcomeMail;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\{Auth, Hash, Cache, Mail, Log, Validator};
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
     /**
-     * Register a new user
+     * 1. Kiểm tra tính hợp lệ của Email và Domain (DNS + Disposable)
      */
-    public function register(Request $request)
+    public function checkEmail(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'role' => 'nullable|in:ADMIN,AGENT,CUSTOMER',
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string',
-            'city' => 'nullable|string',
-        ]);
+        $request->validate(['email' => 'required|email:rfc,dns|max:255']);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+        $email = strtolower(trim((string) $request->email));
+        $domain = substr(strrchr($email, "@") ?: '', 1);
+
+        if (!$domain) {
+            return response()->json(['success' => true, 'data' => ['is_real' => false, 'reason' => 'invalid_domain']]);
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role ?? 'CUSTOMER',
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'city' => $request->city,
-            'status' => 'ACTIVE',
-        ]);
+        // Chuyển đổi IDN (tên miền tiếng Việt) sang ASCII
+        if (function_exists('idn_to_ascii')) {
+            $domain = idn_to_ascii($domain, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46) ?: $domain;
+        }
 
-        $token = JWTAuth::fromUser($user);
+        // Danh sách Domain rác
+        $disposable = [
+            'mailinator.com',
+            'guerrillamail.com',
+            'guerrillamail.net',
+            'guerrillamail.org',
+            '10minutemail.com',
+            '10minutemail.net',
+            'tempmail.com',
+            'temp-mail.org',
+            'yopmail.com',
+            'yopmail.fr',
+            'yopmail.net',
+            'trashmail.com',
+            'getnada.com'
+        ];
+
+        if (in_array($domain, $disposable, true)) {
+            return response()->json([
+                'success' => true,
+                'data' => ['is_real' => false, 'reason' => 'disposable_domain', 'domain' => $domain]
+            ]);
+        }
+
+        // Kiểm tra DNS (MX và A record) - Cache 1 giờ
+        $isReal = Cache::remember("dns_check_{$domain}", 3600, function () use ($domain) {
+            $hasMx = @checkdnsrr($domain, 'MX');
+            $hasA = @checkdnsrr($domain, 'A') || @checkdnsrr($domain, 'AAAA');
+            return $hasMx || $hasA;
+        });
 
         return response()->json([
             'success' => true,
-            'message' => 'User registered successfully',
             'data' => [
-                'user' => [
-                    'id' => (string) $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'branch' => $user->branch ? $user->branch->name : null,
-                    'phone' => $user->phone,
-                ],
-                'token' => $token,
+                'is_real' => $isReal,
+                'reason' => $isReal ? null : 'domain_not_receiving_mail',
+                'domain' => $domain
             ]
-        ], 201);
+        ]);
     }
 
     /**
-     * Login user
+     * 2. Đăng ký tài khoản
+     */
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+            'role' => 'required|string',
+        ]);
+
+        $user = \App\Models\User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'role' => $validated['role'],
+        ]);
+
+        $mailData = [
+            'title' => 'Đăng ký tài khoản thành công',
+            'name' => $user->name,
+            'content' => "Bạn đã đăng ký tài khoản thành công trên CourierXpress.\nCảm ơn bạn đã sử dụng dịch vụ!",
+        ];
+        \Mail::to($user->email)->send(new WelcomeMail($mailData));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đăng ký thành công',
+            'data' => ['user' => $user],
+        ]);
+    }
+
+    /**
+     * 3. Đăng nhập
      */
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+        $credentials = $request->validate([
+            'email'    => 'required|email',
             'password' => 'required|string',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+        if (!$token = auth('api')->attempt($credentials)) {
+            return response()->json(['success' => false, 'message' => 'Email hoặc mật khẩu không chính xác.'], 401);
         }
 
-        $credentials = $request->only('email', 'password');
+        $user = auth('api')->user();
 
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid email or password'
-            ], 401);
-        }
-
-        $user = Auth::user();
         if ($user->status !== 'ACTIVE') {
-        auth()->logout(); // Quan trọng: Hủy ngay cái token vừa tạo ra
-        return response()->json([
-            'success' => false,
-            'message' => 'Tài khoản đã bị khóa. Vui lòng liên hệ Admin.',
-        ], 403);
-    }
+            auth('api')->logout();
+            return response()->json(['success' => false, 'message' => 'Tài khoản của bạn đang bị khóa.'], 403);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
-            'data' => [
-                'user' => [
-                    'id' => (string) $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'branch' => $user->branch ? $user->branch->name : null,
-                    'phone' => $user->phone,
-                ],
+            'data'    => [
+                'user'  => $this->formatUserResponse($user),
                 'token' => $token,
             ]
         ]);
     }
 
     /**
-     * Get authenticated user
-     */
-    public function me()
-    {
-        $user = Auth::user();
-        $user->load('branch');
-
-        // Format customer ID if role is CUSTOMER
-        $userId = $user->role === 'CUSTOMER' 
-            ? 'KH-' . str_pad((string) $user->id, 4, '0', STR_PAD_LEFT)
-            : (string) $user->id;
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'id' => $userId,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-                'branch' => $user->branch ? [
-                    'id' => (string) $user->branch->id,
-                    'name' => $user->branch->name,
-                ] : null,
-                'phone' => $user->phone,
-                'address' => $user->address,
-                'city' => $user->city,
-                'status' => $user->status,
-            ]
-        ]);
-    }
-
-    /**
-     * Logout user
-     */
-    public function logout()
-    {
-        JWTAuth::invalidate(JWTAuth::getToken());
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Logout successful'
-        ]);
-    }
-
-    /**
-     * Request password reset
+     * 4. Quên mật khẩu & Reset
      */
     public function forgotPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
+        $request->validate(['email' => 'required|email|exists:users,email']);
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
-            // For security, return success even if email doesn't exist
-            return response()->json([
-                'success' => true,
-                'message' => 'If the email exists, a password reset link has been sent.'
-            ]);
+        $otp = (string) random_int(100000, 999999);
+        Cache::put('password_otp_' . $user->email, $otp, now()->addMinutes(5));
+
+        try {
+            Mail::to($user->email)->send(new CourierXpressMail([
+                'subject' => 'Reset Password OTP - CourierXpress',
+                'title'   => 'Yêu cầu đặt lại mật khẩu',
+                'name'    => $user->name,
+                'content' => "Mã OTP của bạn là: **{$otp}**. Mã có hiệu lực trong 5 phút.",
+                'action_url' => config('app.frontend_url') . "/reset-password?email=" . urlencode($user->email),
+                'action_text' => 'Đặt lại mật khẩu'
+            ]));
+            return response()->json(['success' => true, 'message' => 'Mã OTP đã được gửi về email.']);
+        } catch (\Exception $e) {
+            Log::error("Mail Error: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Lỗi gửi mail.'], 500);
+        }
+    }
+
+    public function resetPassword(Request $request)
+    {
+        // BƯỚC 1: Validate dữ liệu đầu vào
+        $request->validate([
+            'email'    => 'required|email|exists:users,email',
+            'otp'      => 'required|string|size:6',
+            'password' => 'required|string|min:8|confirmed', // confirmed yêu cầu có thêm password_confirmation
+        ]);
+
+        // BƯỚC 2: Kiểm tra mã OTP trong Cache
+        if (Cache::get('password_otp_' . $request->email) !== $request->otp) {
+            return response()->json(['success' => false, 'message' => 'Mã OTP không chính xác hoặc đã hết hạn.'], 400);
         }
 
-        // TODO: Generate reset token and send email
-        // For now, just return success message
-        // In production, you would:
-        // 1. Generate a secure token
-        // 2. Store it in password_reset_tokens table
-        // 3. Send email with reset link
-        // 4. Token expires after 1 hour
+        // BƯỚC 3: Lấy thông tin User hiện tại
+        $user = User::where('email', $request->email)->first();
+
+        // BƯỚC 4: Kiểm tra mật khẩu mới có trùng với mật khẩu cũ không
+        // Hash::check sẽ so sánh mật khẩu chưa mã hóa từ request với mật khẩu đã mã hóa trong DB
+        if (Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mật khẩu mới không được trùng với mật khẩu cũ. Vui lòng nhập mật khẩu khác.'
+            ], 400);
+        }
+
+        // BƯỚC 5: Cập nhật mật khẩu mới (phải Hash trước khi lưu)
+        $user->update(['password' => Hash::make($request->password)]);
+
+        // BƯỚC 6: Xóa OTP trong Cache sau khi đổi thành công để bảo mật
+        Cache::forget('password_otp_' . $request->email);
 
         return response()->json([
             'success' => true,
-            'message' => 'If the email exists, a password reset link has been sent to your email.'
+            'message' => 'Mật khẩu đã được thay đổi thành công.'
         ]);
     }
 
     /**
-     * Reset password with token
+     * 5. Xác thực OTP Email cho đăng ký mới
      */
-    public function resetPassword(Request $request)
+    public function requestEmailOtp(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
-            'token' => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        $request->validate(['email' => 'required|email']);
+        $code = (string) random_int(100000, 999999);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+        Cache::put('email_otp_' . $request->email, $code, now()->addMinutes(5));
+
+        try {
+            Mail::raw("Mã xác thực CourierXpress của bạn là: {$code}", function ($m) use ($request) {
+                $m->to($request->email)->subject('Verification OTP');
+            });
+            return response()->json(['success' => true, 'message' => 'Mã OTP đã được gửi.']);
+        } catch (\Throwable $e) {
+            Log::error('Send OTP failed: ' . $e->getMessage());
+            if (config('app.env') === 'local') {
+                return response()->json(['success' => true, 'debug_otp' => $code, 'message' => 'Local mode: Mail không gửi nhưng OTP đã tạo.']);
+            }
+            return response()->json(['success' => false, 'message' => 'Lỗi hệ thống không thể gửi mail.'], 500);
+        }
+    }
+
+    public function verifyEmailOtp(Request $request)
+    {
+        $request->validate(['email' => 'required|email', 'code' => 'required|digits:6']);
+
+        if (Cache::get('email_otp_' . $request->email) !== $request->code) {
+            return response()->json(['success' => false, 'message' => 'Mã OTP không chính xác.'], 422);
         }
 
-        // TODO: Verify token from password_reset_tokens table
-        // For now, this is a placeholder
-        // In production, you would:
-        // 1. Check if token exists and is valid
-        // 2. Check if token hasn't expired
-        // 3. Update user password
-        // 4. Delete the token
+        Cache::forget('email_otp_' . $request->email);
+        Cache::put('email_verified_' . $request->email, true, now()->addMinutes(15));
 
-        $user = User::where('email', $request->email)->first();
+        return response()->json(['success' => true, 'message' => 'Xác thực email thành công.']);
+    }
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not found'
-            ], 404);
+    public function me()
+    {
+        $user = auth('api')->user();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        return response()->json(['success' => true, 'data' => $this->formatUserResponse($user)]);
+    }
+
+    public function logout()
+    {
+        auth('api')->logout();
+        return response()->json(['success' => true, 'message' => 'Logout successful']);
+    }
+
+    private function formatUserResponse(User $user)
+    {
+        if (!$user->relationLoaded('branch')) {
+            $user->load('branch');
         }
 
-        // For now, just update password (in production, verify token first)
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Password has been reset successfully'
-        ]);
+        return [
+            'id'      => $user->role === 'CUSTOMER' ? 'KH-' . str_pad((string)$user->id, 4, '0', STR_PAD_LEFT) : (string)$user->id,
+            'name'    => $user->name,
+            'email'   => $user->email,
+            'role'    => $user->role,
+            'phone'   => $user->phone,
+            'branch'  => $user->branch ? $user->branch->name : null,
+            'status'  => $user->status,
+            'city'    => $user->city ?? null,
+            'address' => $user->address ?? null,
+        ];
     }
 }

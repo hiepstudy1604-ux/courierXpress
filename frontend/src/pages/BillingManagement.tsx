@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Calendar,
@@ -11,35 +10,33 @@ import {
   Hash,
   RotateCcw,
   Search,
+  User as UserIcon,
+  Loader2,
+  XCircle,
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { BillingService } from '../services/api';
-import { Loader2, User as UserIcon, XCircle } from 'lucide-react';
 
 interface Props {
   user: User;
 }
-
-/* 
-Khai bao bien cho component BillingManagement
- */
 
 const BillingManagement: React.FC<Props> = ({ user }) => {
   const [showFilters, setShowFilters] = useState(true);
   const [filters, setFilters] = useState({
     trackingId: '',
     billId: '',
-    date: ''
+    date: '',
+    customerName: '' 
   });
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const totalPages = Math.max(1, Math.ceil(transactions.length / itemsPerPage));
-  const safePage = Math.min(Math.max(1, currentPage), totalPages);
 
   const isCustomer = user.role === UserRole.CUSTOMER;
+  const canSearchCustomer = user.role === UserRole.ADMIN || user.role === UserRole.AGENT;
 
   // Modal state
   const [selectedBill, setSelectedBill] = useState<any | null>(null);
@@ -54,11 +51,9 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
     setSelectedBill(null);
   };
 
-  /* 
-  chức năng useEffect để lấy dữ liệu hóa đơn khi bộ lọc thay đổi
-  */
   useEffect(() => {
     fetchBills();
+    setCurrentPage(1); 
   }, [filters]);
 
   const fetchBills = async () => {
@@ -69,6 +64,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
       if (filters.trackingId) params.tracking_id = filters.trackingId;
       if (filters.billId) params.bill_id = filters.billId;
       if (filters.date) params.date = filters.date;
+      if (filters.customerName) params.customer_name = filters.customerName;
 
       const response = await BillingService.getAll(params);
       
@@ -80,7 +76,8 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
           amount: bill.amount || bill.total_amount || 0,
           date: bill.date || bill.created_at || 'N/A',
           created_at: bill.created_at || bill.date || 'N/A',
-          customer: bill.customer_name || bill.customer || user.name,
+          customer: bill.customer_name || bill.customer || 'N/A',
+          ...bill 
         }));
         setTransactions(transformedData);
       } else {
@@ -94,14 +91,25 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
     }
   };
 
+  // Logic to prevent numbers and allow only letters/spaces
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Regex allows letters (including Vietnamese accents) and spaces, but removes digits
+    const cleanValue = value.replace(/[0-9]/g, '');
+    setFilters({ ...filters, customerName: cleanValue });
+  };
+
   const resetFilters = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setFilters({ trackingId: '', billId: '', date: '' });
+    setFilters({ trackingId: '', billId: '', date: '', customerName: '' });
   };
+
+  const totalPages = Math.max(1, Math.ceil(transactions.length / itemsPerPage));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+  const paginatedData = transactions.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-
       <section className="bg-white rounded-[24px] border border-slate-200 shadow-sm overflow-hidden transition-all">
         <div className="p-4 px-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div 
@@ -118,7 +126,6 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
               type="button"
               onClick={resetFilters}
               className="flex items-center gap-2 text-slate-400 hover:text-[#f97316] text-xs font-bold transition-all px-3 py-1.5 hover:bg-orange-50 rounded-lg group"
-              title="Reset Filters"
             >
               <RotateCcw size={14} className="group-active:rotate-180 transition-transform" />
               Reset All
@@ -127,7 +134,24 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
         </div>
         
         {showFilters && (
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-200">
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-2 duration-200">
+            {/* Customer Name Search - Block Numbers, Allow Accents */}
+            {canSearchCustomer && (
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 ml-1">Customer Name</label>
+                <div className="relative">
+                  <UserIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                  <input 
+                    type="text" 
+                    placeholder="Letters only (e.g. Vũ)..." 
+                    value={filters.customerName}
+                    onChange={handleNameChange}
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 transition-all font-semibold text-slate-900" 
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 ml-1">Bill ID</label>
               <div className="relative">
@@ -141,6 +165,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                 />
               </div>
             </div>
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 ml-1">Tracking ID</label>
               <div className="relative">
@@ -154,15 +179,15 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                 />
               </div>
             </div>
+
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Creation Date</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">Date</label>
               <div className="relative">
                 <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
                 <input 
                   type="date" 
                   value={filters.date}
                   onChange={(e) => setFilters({...filters, date: e.target.value})}
-                  title="Creation Date"
                   className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/40 transition-all font-semibold text-slate-900" 
                 />
               </div>
@@ -181,6 +206,7 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                 <th className="px-6 py-5 text-xs font-bold text-slate-500 tracking-tight"><div className="flex items-center gap-1.5"><FileText size={14}/>Tracking ID</div></th>
                 <th className="px-6 py-5 text-xs font-bold text-slate-500 tracking-tight"><div className="flex items-center gap-1.5"><Calendar size={14}/>Creation Date</div></th>
                 <th className="pr-8 py-5 text-xs font-bold text-slate-500 tracking-tight text-right">Total Amount</th>
+                <th className="px-6 py-5 text-xs font-bold text-slate-500 tracking-tight text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -199,24 +225,18 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                     <div className="flex flex-col items-center justify-center gap-4">
                       <XCircle size={32} className="text-rose-500" />
                       <p className="text-sm font-semibold text-slate-700">{error}</p>
-                      <button
-                        type="button"
-                        onClick={fetchBills}
-                        className="px-4 py-2 bg-[#f97316] text-white rounded-lg font-bold text-sm hover:bg-[#ea580c] transition-all"
-                      >
-                        Retry
-                      </button>
+                      <button onClick={fetchBills} className="px-4 py-2 bg-[#f97316] text-white rounded-lg font-bold text-sm">Retry</button>
                     </div>
                   </td>
                 </tr>
               ) : transactions.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-20 text-center">
-                    <p className="text-sm font-semibold text-slate-500">No bills found</p>
+                    <p className="text-sm font-semibold text-slate-500">No bills found matching your search.</p>
                   </td>
                 </tr>
               ) : (
-                transactions.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage).map((tx) => (
+                paginatedData.map((tx) => (
                 <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-5">
                     <span className="text-sm font-black text-slate-900 leading-none">{tx.id}</span>
@@ -235,11 +255,9 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
                   <td className="pr-8 py-5 text-right">
                     <p className="text-sm font-black text-slate-900">${(tx.amount / 25000).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </td>
-                  <td className="px-6 py-5 text-right flex gap-2 justify-end items-center">
+                  <td className="px-6 py-5 text-right">
                     <button
-                      type="button"
                       className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-all"
-                      title="View details"
                       onClick={() => openDetailModal(tx)}
                     >
                       <Eye size={18} />
@@ -252,179 +270,44 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
           </table>
         </div>
 
+        {/* Pagination */}
         <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between mt-auto">
           <p className="text-xs font-bold text-slate-500">
-            Showing{' '}
-            <span className="text-slate-900 font-black">
-              {transactions.length > 0 ? Math.min(transactions.length, (currentPage - 1) * itemsPerPage + 1) : 0}
-              -{Math.min(transactions.length, currentPage * itemsPerPage)}
-            </span>{' '}
-            of <span className="text-slate-900 font-black">{transactions.length}</span> bills
+            Showing <span className="text-slate-900 font-black">{transactions.length > 0 ? (safePage - 1) * itemsPerPage + 1 : 0}-{Math.min(transactions.length, safePage * itemsPerPage)}</span> of <span className="text-slate-900 font-black">{transactions.length}</span> bills
           </p>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              className="p-2.5 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 transition-all shadow-sm bg-white text-slate-600"
-              title="Previous page"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <div className="flex items-center gap-1.5">
-              {(() => {
-                const maxVisible = 7;
-                const total = totalPages;
-                const current = safePage;
-
-                const pages: number[] = [];
-                const pushRange = (start: number, end: number) => {
-                  for (let p = start; p <= end; p++) pages.push(p);
-                };
-
-                if (total <= maxVisible) {
-                  pushRange(1, total);
-                } else {
-                  const left = Math.max(1, current - 2);
-                  const right = Math.min(total, current + 2);
-
-                  pages.push(1);
-                  if (left > 2) pages.push(-1);
-                  pushRange(Math.max(2, left), Math.min(total - 1, right));
-                  if (right < total - 1) pages.push(-1);
-                  pages.push(total);
-                }
-
-                return pages.map((p, idx) => {
-                  if (p === -1) {
-                    return (
-                      <span key={`ellipsis-${idx}`} className="w-9 text-center text-xs font-black text-slate-300">
-                        …
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <button
-                      type="button"
-                      key={p}
-                      onClick={() => setCurrentPage(p)}
-                      className={`w-9 h-9 rounded-xl text-xs font-black transition-all border ${
-                        current === p
-                          ? 'bg-slate-900 text-white shadow-lg border-slate-900'
-                          : 'bg-white text-slate-400 border-slate-200 hover:text-slate-900 hover:border-slate-400'
-                      }`}
-                      title={`Page ${p}`}
-                    >
-                      {p}
-                    </button>
-                  );
-                });
-              })()}
-            </div>
-            <button
-              type="button"
-              disabled={safePage === totalPages || transactions.length === 0}
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              className="p-2.5 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 transition-all shadow-sm bg-white text-slate-600"
-              title="Next page"
-            >
-              <ChevronRight size={16} />
-            </button>
+            <button disabled={safePage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className="p-2.5 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 bg-white"><ChevronLeft size={16} /></button>
+            <span className="text-xs font-black text-slate-900 px-3">Page {safePage} of {totalPages}</span>
+            <button disabled={safePage === totalPages} onClick={() => setCurrentPage(prev => prev + 1)} className="p-2.5 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 bg-white"><ChevronRight size={16} /></button>
           </div>
         </div>
       </section>
 
-
+      {/* Detail Modal */}
       {showDetailModal && selectedBill && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="bg-white rounded-2xl shadow-2xl w-[700px] max-w-[95vw] max-h-[80vh] border border-orange-200 overflow-y-auto scrollbar-hide pointer-events-auto animate-in fade-in duration-200">
-            <div className="flex items-center justify-between px-10 pt-8 pb-4 border-b border-orange-100 rounded-t-2xl bg-gradient-to-r from-orange-100 to-white">
-              <h2 className="text-2xl font-extrabold text-orange-600 flex items-center gap-3 tracking-tight">
-                <FileText size={32} className="text-orange-400" /> Order details
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in duration-200">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-orange-100 bg-gradient-to-r from-orange-50 to-white sticky top-0 z-10">
+              <h2 className="text-xl font-black text-orange-600 flex items-center gap-2">
+                <FileText size={24} /> Order Details
               </h2>
-              <button
-                type="button"
-                className="p-2 rounded-full hover:bg-orange-200 text-slate-400 hover:text-orange-600 transition-all"
-                onClick={closeDetailModal}
-                title="Close"
-              >
-                <XCircle size={28} />
-              </button>
+              <button onClick={closeDetailModal} className="p-2 hover:bg-orange-100 rounded-full text-slate-400 hover:text-orange-600 transition-all"><XCircle size={24} /></button>
             </div>
-            <div className="px-10 py-8 space-y-8">
-              {/* Thông tin chung và hàng hóa */}
+            <div className="p-8 space-y-8">
               <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-500 font-semibold">Order ID</span>
-                    <span className="font-bold text-slate-900 text-base">{selectedBill.trackingId}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-500 font-semibold">Bill ID</span>
-                    <span className="font-bold text-orange-600 text-base">{selectedBill.id}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-500 font-semibold">Created date</span>
-                    <span className="font-semibold text-slate-700 text-base">{selectedBill.created_at || selectedBill.date}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-500 font-semibold">Received date</span>
-                    <span className="font-semibold text-slate-700 text-base">{selectedBill.received_at || '-'}</span>
-                  </div>
+                <div className="space-y-4">
+                  <DetailItem label="Tracking ID" value={selectedBill.trackingId} bold />
+                  <DetailItem label="Internal Bill ID" value={selectedBill.id} color="text-orange-600" />
+                  <DetailItem label="Creation Date" value={selectedBill.created_at} />
                 </div>
-                <div className="space-y-3">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-500 font-semibold">Item name</span>
-                    <span className="font-semibold text-slate-700 text-base">{selectedBill.goods_name || '-'}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-500 font-semibold">Item category</span>
-                    <span className="font-semibold text-slate-700 text-base">{selectedBill.goods_type || '-'}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-500 font-semibold">Shipping type</span>
-                    <span className="font-semibold text-slate-700 text-base">{selectedBill.shipping_type || '-'}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-500 font-semibold">Weight (kg)</span>
-                    <span className="font-semibold text-slate-700 text-base">{selectedBill.weight || '-'}</span>
-                  </div>
-                  <div className="flex flex-row gap-3">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-slate-500 font-semibold">Length (cm)</span>
-                      <span className="font-semibold text-slate-700 text-base">{selectedBill.length || '-'}</span>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-slate-500 font-semibold">Width (cm)</span>
-                      <span className="font-semibold text-slate-700 text-base">{selectedBill.width || '-'}</span>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-slate-500 font-semibold">Height (cm)</span>
-                      <span className="font-semibold text-slate-700 text-base">{selectedBill.height || '-'}</span>
-                    </div>
-                  </div>
+                <div className="space-y-4">
+                  <DetailItem label="Customer Name" value={selectedBill.customer} bold />
+                  <DetailItem label="Current Status" value={selectedBill.status} uppercase color="text-emerald-600" />
                 </div>
               </div>
-              {/* Thông tin người gửi/nhận */}
-              <div className="grid grid-cols-2 gap-8">
-                <div className="bg-orange-50 rounded-xl p-4 border border-orange-100 flex flex-col gap-1">
-                  <span className="text-xs text-slate-500 font-semibold mb-1">Sender</span>
-                  <span className="font-bold text-slate-700 text-base">{selectedBill.sender_name || '-'}</span>
-                  <span className="text-xs text-slate-400">{selectedBill.sender_phone || '-'}</span>
-                  <span className="text-xs text-slate-400">{selectedBill.sender_address || '-'}</span>
-                </div>
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 flex flex-col gap-1">
-                  <span className="text-xs text-slate-500 font-semibold mb-1">Receiver</span>
-                  <span className="font-bold text-slate-700 text-base">{selectedBill.receiver_name || '-'}</span>
-                  <span className="text-xs text-slate-400">{selectedBill.receiver_phone || '-'}</span>
-                  <span className="text-xs text-slate-400">{selectedBill.receiver_address || '-'}</span>
-                </div>
-              </div>
-              {/* Tổng tiền */}
-              <div className="flex flex-col items-end mt-2">
-                <div className="text-base text-slate-500 font-semibold">Total amount</div>
-                <div className="font-extrabold text-2xl text-green-600">${(selectedBill.amount / 25000).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+              <div className="pt-6 border-t border-slate-100 flex flex-col items-end">
+                <span className="text-sm font-bold text-slate-500">Total Amount Charged</span>
+                <span className="text-3xl font-black text-emerald-600">${(selectedBill.amount / 25000).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
@@ -433,5 +316,12 @@ const BillingManagement: React.FC<Props> = ({ user }) => {
     </div>
   );
 };
+
+const DetailItem = ({ label, value, bold, color, uppercase }: any) => (
+  <div className="flex flex-col gap-1">
+    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{label}</span>
+    <span className={`text-sm ${bold ? 'font-black' : 'font-bold'} ${color || 'text-slate-900'} ${uppercase ? 'uppercase' : ''}`}>{value || '-'}</span>
+  </div>
+);
 
 export default BillingManagement;
